@@ -41,7 +41,14 @@ const I18N={
     wheel_tab:'🎡 转盘',
     wheel_btn:'🎡 转一转',
     wheel_spinning:'转盘中...',
-    wheel_result_msgs:['指针停在这里！','转盘替你决定了','命运转出了答案','今天就是这个了','别纠结，就是它！','转盘说：选它！','幸运轮选中的答案','相信转盘的选择']
+    wheel_result_msgs:['指针停在这里！','转盘替你决定了','命运转出了答案','今天就是这个了','别纠结，就是它！','转盘说：选它！','幸运轮选中的答案','相信转盘的选择'],
+    number_tab:'🎴 幸运数字',
+    number_btn:'🃏 抽取幸运数字',
+    number_drawing:'抽牌中...',
+    num_from:'从',
+    num_to:'到',
+    number_invalid:'请设置有效的数字范围',
+    number_result_msgs:['你的幸运数字诞生了！','命运掷出了这个数字！','今天的幸运数字就是它','相信这个数字吧！','数字已揭晓，别犹豫','这就是属于你的数字','魔法卡牌选中了它','幸运之数，收下吧！']
   },
   en:{
     app_name:'Lucky Picker',
@@ -81,7 +88,14 @@ const I18N={
     wheel_tab:'🎡 Wheel',
     wheel_btn:'🎡 Spin!',
     wheel_spinning:'Spinning...',
-    wheel_result_msgs:['The pointer stopped here!','The wheel has spoken','Fate spun this answer','This is the one today','No more doubt, go with it!','The wheel says: this!','Lady Luck spun to this','Trust the spin']
+    wheel_result_msgs:['The pointer stopped here!','The wheel has spoken','Fate spun this answer','This is the one today','No more doubt, go with it!','The wheel says: this!','Lady Luck spun to this','Trust the spin'],
+    number_tab:'🎴 Lucky Number',
+    number_btn:'🃏 Draw a Card',
+    number_drawing:'Drawing...',
+    num_from:'From',
+    num_to:'To',
+    number_invalid:'Please set a valid range',
+    number_result_msgs:['Your lucky number is born!','Fate drew this number!','This is your lucky number','Trust this number!','The card has spoken!','This number belongs to you','The magic card chose it','Take it — your lucky number!']
   }
 };
 
@@ -102,7 +116,10 @@ function applyI18n(){
   $('#tab-dice').textContent=t('dice_tab');
   $('#tab-coin').textContent=t('coin_tab');
   $('#tab-wheel').textContent=t('wheel_tab');
-  $('#btn-roll').textContent=t(mode==='coin'?'coin_btn':mode==='wheel'?'wheel_btn':'roll_btn');
+  $('#tab-number').textContent=t('number_tab');
+  const isNum=mode==='number';
+  const btnKey=mode==='coin'?'coin_btn':mode==='wheel'?'wheel_btn':isNum?'number_btn':'roll_btn';
+  $('#btn-roll').textContent=t(btnKey);
 }
 function applyTheme(){document.documentElement.setAttribute('data-theme',theme);}
 
@@ -152,6 +169,7 @@ function reindex(){
 // ── Core Action ──
 function doAction(){
   if(isRolling)return;
+  if(mode==='number'){doNumberDraw();return;}
   const opts=getOptions();
   if(opts.length<2){showToast(t('min_options'));return;}
   if(mode==='coin')doCoinFlip(opts);
@@ -412,6 +430,167 @@ function animateWheel(opts,wi){
   requestAnimationFrame(tick);
 }
 
+// ── Number Draw (Card Deck) ──
+function getNumberRange(){
+  const mn=parseInt($('#num-min').value)||1;
+  const mx=parseInt($('#num-max').value)||10;
+  return {min:Math.max(1,Math.min(mn,9999)),max:Math.max(1,Math.min(mx,9999))};
+}
+function isValidRange(r){return r.min<=r.max;}
+
+function doNumberDraw(){
+  const r=getNumberRange();
+  if(!isValidRange(r)){showToast(t('number_invalid'));$('#num-min').classList.add('invalid');$('#num-max').classList.add('invalid');setTimeout(()=>{$('#num-min').classList.remove('invalid');$('#num-max').classList.remove('invalid');},1500);return;}
+  isRolling=true;
+  $('#btn-roll').classList.add('rolling');
+  const result=Math.floor(Math.random()*(r.max-r.min+1))+r.min;
+  $('#input-section').classList.add('hidden');
+  $('#result-section').classList.add('hidden');
+  $('#battle-section').classList.remove('hidden');
+  $('#footer-lucky').classList.add('hidden');
+  $('#battle-section .battle-tip').textContent=t('number_drawing');
+  buildNumberStage(r);
+  animateCardDeck(r,result);
+}
+
+function buildNumberStage(range){
+  const st=$('#dice-stage');st.innerHTML='';
+  st.classList.add('card-stage');st.classList.remove('coin-stage','wheel-stage');
+  const deck=document.createElement('div');deck.className='card-deck';
+  const deckEl=deck;
+  const CARD_W=64,CARD_H=88,GAP=4;
+  const totalCards=5;
+  // Create cards in a fan layout
+  for(let i=0;i<totalCards;i++){
+    const card=document.createElement('div');card.className='playing-card';
+    card.style.width=CARD_W+'px';card.style.height=CARD_H+'px';
+    // Fan spread: cards stack slightly shifted horizontally
+    const fanX=(i-Math.floor(totalCards/2))*(CARD_W*.55);
+    const fanY=Math.abs(i-Math.floor(totalCards/2))*3;
+    const fanRot=(i-Math.floor(totalCards/2))*4;
+    card.style.transform=`translate(${fanX}px,${fanY}px) rotate(${fanRot}deg)`;
+    card.style.transition='transform .5s cubic-bezier(.22,1,.36,1)';
+    card.innerHTML=`<div class="card-back"></div><div class="card-front"><span class="card-num" data-num="${i}"></span></div>`;
+    deckEl.appendChild(card);
+  }
+  st.appendChild(deckEl);
+}
+
+function animateCardDeck(range,result){
+  const DUR=3000,t0=performance.now();
+  const cards=$$('.playing-card'),N=cards.length;
+  const winnerIdx=Math.floor(Math.random()*N);
+
+  // Phase timing: shuffle → stack → eject → flip → float
+  const P_SHUFFLE=.42, P_STACK=.62, P_EJECT=.78, P_FLIP=.92;
+
+  let phase=0;
+
+  const numEls=$$('.card-num');
+  const updateNums=()=>{
+    numEls.forEach(el=>{
+      el.textContent=Math.floor(Math.random()*(range.max-range.min+1))+range.min;
+    });
+  };
+  let numTimer=setInterval(updateNums,60);
+
+  // Stagger each non-winner card's stack timing (0~120ms offset)
+  const stackDelay=[];
+  {
+    let j=0;
+    for(let i=0;i<N;i++){if(i!==winnerIdx)stackDelay[i]=(j++)*40;else stackDelay[i]=0;}
+  }
+
+  function tick(now){
+    const el=now-t0,p=Math.min(el/DUR,1);
+    $('#progress-bar').style.width=(p*100)+'%';
+
+    if(phase===0){
+      cards.forEach((c,i)=>{c.classList.add('shuffling');c.style.animationDelay=(i*0.02)+'s';});
+      if(p>=P_SHUFFLE){
+        phase=1;clearInterval(numTimer);numTimer=setInterval(updateNums,180);
+        cards.forEach(c=>{c.classList.remove('shuffling');c.style.animationDelay='';});
+
+        // ── Phase 1: collapse into stack ──
+        const stackY=5,stackScale=0.85;
+        cards.forEach((card,i)=>{
+          card.style.transition='transform .45s cubic-bezier(.22,1,.36,1)';
+          card.style.transitionDelay=(stackDelay[i]/1000)+'s';
+          // Stack: all at center, slightly overlapped vertically
+          const offsetY=(i-winnerIdx)*3;
+          card.style.transform=`translate(0px,${stackY+offsetY}px) rotate(0deg) scale(${stackScale})`;
+          card.style.zIndex=i===winnerIdx?10:1;
+        });
+      }
+    }else if(phase===1&&p>=P_STACK){
+      phase=2;clearInterval(numTimer);
+      // Lock winner card's real number
+      cards[winnerIdx].querySelector('.card-num').textContent=result;
+
+      // ── Phase 2: winner eject upward from stack ──
+      cards[winnerIdx].style.transition=
+        'transform .55s cubic-bezier(.34,1.56,.64,1)'; // spring-back ease
+      cards[winnerIdx].style.transitionDelay='0s';
+      cards[winnerIdx].style.transform='translate(0px,-65px) scale(1.35)';
+      cards[winnerIdx].classList.add('ejecting');
+
+      // Other cards shrink and dim slightly as base
+      cards.forEach((card,i)=>{
+        if(i===winnerIdx)return;
+        card.style.transition='transform .4s ease-out,opacity .4s ease-out';
+        card.style.transform='translate(0px,5px) rotate(0deg) scale(0.75)';
+        card.style.opacity='0.4';
+      });
+    }else if(phase===2&&p>=P_EJECT){
+      phase=3;
+      // ── Phase 3: flip card face-up ──
+      cards[winnerIdx].style.transition=
+        'transform .5s cubic-bezier(.22,1,.36,1)';
+      cards[winnerIdx].style.transform='translate(0px,-50px) scale(1.35) rotateY(180deg)';
+      cards[winnerIdx].classList.add('flipped');
+    }else if(phase===3&&p>=P_FLIP){
+      phase=4;
+      cards[winnerIdx].classList.add('float');
+    }
+
+    if(p>=1){
+      clearInterval(numTimer);
+      if(phase<3){
+        cards[winnerIdx].querySelector('.card-num').textContent=result;
+        cards[winnerIdx].style.transform='translate(0px,-50px) scale(1.35) rotateY(180deg)';
+        cards[winnerIdx].classList.add('flipped');
+      }
+      setTimeout(()=>showNumberResult(range,result),500);
+    }else{
+      requestAnimationFrame(tick);
+    }
+  }
+  requestAnimationFrame(tick);
+}
+
+function showNumberResult(range,result){
+  const opts=[String(result)];
+  showResult(opts,[],0);
+  // Override the result-dice-visual with custom layout
+  const dv=$('#result-dice-visual');dv.innerHTML='';
+  dv.innerHTML=`<div class="nr-wrap"><div class="nr-card"><span class="nr-num">${result}</span></div><div class="nr-range">${range.min} — ${range.max}</div></div>`;
+  $('#result-winner').textContent=result;
+  // Override msg with number-specific
+  const msgs=I18N[lang]['number_result_msgs'];
+  $('#result-msg').textContent=msgs[Math.floor(Math.random()*msgs.length)];
+  if(!incognito) saveNumberHist(range,result);
+}
+
+function saveNumberHist(range,result){
+  history.unshift({
+    id:Date.now(),type:'number',min:range.min,max:range.max,result:result,
+    winnerIdx:0,options:[String(result)],rolls:[],totals:[],
+    createdAt:new Date().toISOString()
+  });
+  if(history.length>100)history.pop();
+  chrome.storage.local.set({luckypick_history:history});
+}
+
 function animateRoll(opts,rolls,wi){
   const units=$$('.dice-unit'),DUR=1800,t0=performance.now();
   const sm=new Map();
@@ -471,17 +650,20 @@ function showResult(opts,rolls,wi){
 
   const isCoin=mode==='coin';
   const isWheel=mode==='wheel';
+  const isNumber=mode==='number';
   let msgKey;
   if(isCoin)msgKey=wi===0?'coin_result_heads':'coin_result_tails';
   else if(isWheel)msgKey='wheel_result_msgs';
+  else if(isNumber)msgKey='number_result_msgs';
   else msgKey='result_msgs';
   const msgs=I18N[lang][msgKey];
   $('#result-winner').textContent=opts[wi];
   $('#result-msg').textContent=msgs[Math.floor(Math.random()*msgs.length)];
 
-  // Hide generic winner-card & dice-visual for coin/wheel modes
+  // Hide generic winner-card & dice-visual for coin/wheel/number modes
   $('#result-section').classList.toggle('coin-mode',isCoin);
   $('#result-section').classList.toggle('wheel-mode',isWheel);
+  $('#result-section').classList.toggle('number-mode',isNumber);
 
   const dv=$('#result-dice-visual');dv.innerHTML='';
 
@@ -526,7 +708,7 @@ function showResult(opts,rolls,wi){
 
   }
   spawnConf();
-  if(!incognito) saveHist(opts,rolls,wi);
+  if(!incognito&&mode!=='number') saveHist(opts,rolls,wi);
   updateLucky();
 }
 
@@ -569,11 +751,14 @@ function renderH(){
     const el=document.createElement('div');el.className='hi';el.style.cursor='pointer';
     const isCoinEntry=rec.type==='coin';
     const isWheelEntry=rec.type==='wheel';
-    const histIcon=isCoinEntry?'🪙':isWheelEntry?'🎡':'🎲';
+    const isNumberEntry=rec.type==='number';
+    const histIcon=isCoinEntry?'🪙':isWheelEntry?'🎡':isNumberEntry?'🎴':'🎲';
     const detailLine=isCoinEntry
       ?`${rec.options[rec.winnerIdx]} (${rec.winnerIdx===0?t('coin_heads'):t('coin_tails')})`
       :isWheelEntry
       ?rec.options.join(' · ')
+      :isNumberEntry
+      ?`${rec.min} — ${rec.max}  →  ${rec.result}`
       :rec.options.map((o,j)=>ic[rec.totals[j]]+o).join('　');
     el.innerHTML=`<div class="hw">${histIcon} ${rec.options[rec.winnerIdx]}</div><div class="ho">${detailLine}</div><div class="hm"><span>${new Date(rec.createdAt).toLocaleDateString().slice(5)} ${new Date(rec.createdAt).toTimeString().slice(0,5)}</span><button class="hd-b" data-i="${i}">🗑</button></div>`;
     el.addEventListener('click',()=>{
@@ -592,6 +777,11 @@ function renderH(){
       $('#footer-lucky').classList.remove('hidden');
       if(isCoinEntry&&mode!=='coin')switchMode('coin');
       if(isWheelEntry&&mode!=='wheel')switchMode('wheel');
+      if(isNumberEntry&&mode!=='number')switchMode('number');
+      if(isNumberEntry){
+        $('#num-min').value=rec.min||1;
+        $('#num-max').value=rec.max||10;
+      }
       doAction();
     });
     l.appendChild(el);
@@ -606,10 +796,13 @@ function exportAsImage(){
   const msg=$('#result-msg').textContent;
   const isCoinExport=mode==='coin';
   const isWheelExport=mode==='wheel';
+  const isNumberExport=mode==='number';
   const diceData=isCoinExport
     ?[t('coin_heads'),t('coin_tails')]
     :isWheelExport
     ?Array.from($$('#result-dice-visual .wr-info')).map(()=>'')
+    :isNumberExport
+    ?[]
     :Array.from($$('#result-dice-visual .dv-unit')).map(u=>{
       const n=u.querySelector('.dv-num').textContent;
       const lb=u.querySelector('.dv-label').textContent;
@@ -660,7 +853,7 @@ function exportAsImage(){
 
   ctx.font='12px sans-serif';ctx.fillStyle=subColor;
   ctx.textAlign='center';
-  const midText=isCoinExport?('🪙 '+diceData[0]+' / '+diceData[1]):isWheelExport?'🎡 '+t('wheel_tab'):diceData.join('  VS  ');
+  const midText=isCoinExport?('🪙 '+diceData[0]+' / '+diceData[1]):isWheelExport?'🎡 '+t('wheel_tab'):isNumberExport?'🎴 '+t('number_tab'):diceData.join('  VS  ');
   ctx.fillText(midText,W/2,H/2+24);
 
   ctx.font='italic 12px sans-serif';ctx.fillStyle=subColor;
@@ -730,11 +923,15 @@ function switchMode(m){
   mode=m;
   $$('.mt-btn').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
   const isCoin=mode==='coin';
-  $('#btn-add-option').classList.toggle('hidden',isCoin);
+  const isNumber=mode==='number';
+  // Toggle input sections
+  $('#options-wrap').classList.toggle('hidden',isNumber);
+  $('#number-wrap').classList.toggle('hidden',!isNumber);
+  $('#btn-add-option').classList.toggle('hidden',isCoin||isNumber);
   // Coin mode: trim to 2 options
   if(isCoin&&optionCount>2){while(optionCount>2){$$('.row')[2].remove();optionCount--;}reindex();}
   // Update go button
-  const btnKey=mode==='coin'?'coin_btn':mode==='wheel'?'wheel_btn':'roll_btn';
+  const btnKey=mode==='coin'?'coin_btn':mode==='wheel'?'wheel_btn':isNumber?'number_btn':'roll_btn';
   $('#btn-roll').textContent=t(btnKey);
   // Reset UI
   $('#battle-section').classList.add('hidden');
@@ -755,13 +952,17 @@ function init(){
     $$('.mt-btn').forEach(b=>{b.classList.toggle('active',b.dataset.mode===mode);});
     const isCoinInit=mode==='coin';
     const isWheelInit=mode==='wheel';
-    $('#btn-add-option').classList.toggle('hidden',isCoinInit);
+    const isNumberInit=mode==='number';
+    $('#options-wrap').classList.toggle('hidden',isNumberInit);
+    $('#number-wrap').classList.toggle('hidden',!isNumberInit);
+    $('#btn-add-option').classList.toggle('hidden',isCoinInit||isNumberInit);
     if(isCoinInit&&optionCount>2){while(optionCount>2){$$('.row')[2].remove();optionCount--;}reindex();}
-    const btnInitKey=isCoinInit?'coin_btn':isWheelInit?'wheel_btn':'roll_btn';
+    const btnInitKey=isCoinInit?'coin_btn':isWheelInit?'wheel_btn':isNumberInit?'number_btn':'roll_btn';
     $('#btn-roll').textContent=t(btnInitKey);
     $('#tab-dice').onclick=()=>switchMode('dice');
     $('#tab-coin').onclick=()=>switchMode('coin');
     $('#tab-wheel').onclick=()=>switchMode('wheel');
+    $('#tab-number').onclick=()=>switchMode('number');
 
     $$('#set-rule .seg-btn').forEach(btn=>{
       btn.onclick=()=>{

@@ -22,17 +22,31 @@
     <button class="mt-btn active" data-mode="dice" id="tab-dice">🎲 摇骰子</button>
     <button class="mt-btn" data-mode="coin" id="tab-coin">🪙 抛硬币</button>
     <button class="mt-btn" data-mode="wheel" id="tab-wheel">🎡 转盘</button>
+    <button class="mt-btn" data-mode="number" id="tab-number">🎴 幸运数字</button>
   </div>
 
   <main class="main">
 
     <!-- 输入区 -->
     <section id="input-section">
-      <div class="opt-list" id="options-list">
-        <div class="row"><span class="badge" style="background:#E88BA8">A</span><input class="inp" data-i18n-placeholder="opt_placeholder_a" placeholder="选项 A..." autofocus><button class="del">×</button></div>
-        <div class="row"><span class="badge" style="background:#6BAFE0">B</span><input class="inp" data-i18n-placeholder="opt_placeholder_b" placeholder="选项 B..."><button class="del">×</button></div>
+      <!-- Options input (dice/coin/wheel) -->
+      <div id="options-wrap">
+        <div class="opt-list" id="options-list">
+          <div class="row"><span class="badge" style="background:#E88BA8">A</span><input class="inp" data-i18n-placeholder="opt_placeholder_a" placeholder="选项 A..." autofocus><button class="del">×</button></div>
+          <div class="row"><span class="badge" style="background:#6BAFE0">B</span><input class="inp" data-i18n-placeholder="opt_placeholder_b" placeholder="选项 B..."><button class="del">×</button></div>
+        </div>
+        <button class="add-btn" id="btn-add-option" data-i18n="add_option">＋ 添加选项</button>
       </div>
-      <button class="add-btn" id="btn-add-option" data-i18n="add_option">＋ 添加选项</button>
+
+      <!-- Number range input (number mode) -->
+      <div id="number-wrap" class="hidden">
+        <div class="num-range-row">
+          <span class="num-label" data-i18n="num_from">从</span>
+          <input type="number" class="num-inp" id="num-min" value="1" min="1" max="9999">
+          <span class="num-label" data-i18n="num_to">到</span>
+          <input type="number" class="num-inp" id="num-max" value="10" min="1" max="9999">
+        </div>
+      </div>
 
       <button class="go-btn" id="btn-roll" data-i18n="roll_btn">🎲 掷骰对决</button>
     </section>
