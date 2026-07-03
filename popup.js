@@ -113,12 +113,12 @@ function buildStage(opts){
   const st=$('#dice-stage');st.innerHTML='';
   opts.forEach(o=>{
     const u=document.createElement('div');u.className='dice-unit';
-    const lb=document.createElement('div');lb.className='ulabel';
-    lb.textContent=o.length>5?o.slice(0,5)+'..':o;
-    u.appendChild(lb);
     const dc=createDice();
     setDiceRaw(dc,Math.random()*360,Math.random()*360);
     u.appendChild(dc);
+    const lb=document.createElement('div');lb.className='ulabel';
+    lb.textContent=o.length>5?o.slice(0,5)+'..':o;
+    u.appendChild(lb);
     st.appendChild(u);
   });
 }
@@ -132,8 +132,8 @@ function animateRoll(opts,rolls,wi){
         vx:500+Math.random()*400,
         vy:380+Math.random()*320,
         vz:150+Math.random()*200,
-        ox:(Math.random()-0.5)*14,
-        oy:(Math.random()-0.5)*10
+        ox:(Math.random()-0.5)*6,
+        oy:(Math.random()-0.5)*5
       });
     });
   });
@@ -184,12 +184,24 @@ function showResult(opts,rolls,wi){
   $('#result-winner').textContent=opts[wi];
   $('#result-msg').textContent=msgs[Math.floor(Math.random()*msgs.length)];
 
-  const cr=$('#result-dice-show');cr.innerHTML='';
-  const ic=['','⚀','⚁','⚂','⚃','⚄','⚅'];
+  const dv=$('#result-dice-visual');dv.innerHTML='';
   opts.forEach((o,i)=>{
-    const c=document.createElement('div');c.className='chip'+(i===wi?' win':'');
-    c.innerHTML=`<span class="ci">${ic[rolls[i]]}</span><span>${o} (${rolls[i]})</span>`;
-    cr.appendChild(c);
+    const unit=document.createElement('div');
+    unit.className='dv-unit'+(i===wi?' win':'');
+    const die=document.createElement('div');
+    die.className='dv-die'+(i===wi?' win':' lose');
+    const num=document.createElement('div');
+    num.className='dv-num';num.textContent=rolls[i];
+    die.appendChild(num);
+    const lb=document.createElement('div');
+    lb.className='dv-label';
+    lb.textContent=o.length>6?o.slice(0,6)+'..':o;
+    unit.appendChild(die);unit.appendChild(lb);
+    dv.appendChild(unit);
+    if(i<opts.length-1){
+      const vs=document.createElement('div');
+      vs.className='dv-vs';vs.textContent='VS';dv.appendChild(vs);
+    }
   });
 
   spawnConf();
@@ -245,7 +257,11 @@ function clearH(){if(confirm(lang==='zh'?'清空所有历史？':'Clear all?')){
 function exportAsImage(){
   const winnerName=$('#result-winner').textContent;
   const msg=$('#result-msg').textContent;
-  const chips=Array.from($$('#result-dice-show .chip')).map(c=>c.textContent.trim());
+  const diceData=Array.from($$('#result-dice-visual .dv-unit')).map(u=>{
+    const n=u.querySelector('.dv-num').textContent;
+    const lb=u.querySelector('.dv-label').textContent;
+    return `${lb}(${n})`;
+  });
 
   const W=400,H=280;
   const canvas=document.createElement('canvas');
@@ -291,7 +307,7 @@ function exportAsImage(){
 
   ctx.font='12px sans-serif';ctx.fillStyle=subColor;
   ctx.textAlign='center';
-  ctx.fillText(chips.join('   '),W/2,H/2+24);
+  ctx.fillText(diceData.join('  VS  '),W/2,H/2+24);
 
   ctx.font='italic 12px sans-serif';ctx.fillStyle=subColor;
   ctx.fillText(msg,W/2,H/2+50);
