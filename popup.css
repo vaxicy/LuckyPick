@@ -63,13 +63,6 @@ body { width:320px; min-height:auto; font-family:-apple-system,BlinkMacSystemFon
 .add-btn { width:100%; border:1.5px dashed var(--border); background:none; border-radius:var(--r); padding:7px; font-size:12px; font-weight:600; color:var(--sub); cursor:pointer; margin-bottom:10px; transition:all .15s; display:flex; align-items:center; justify-content:center; gap:4px; }
 .add-btn:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-bg); }
 
-/* ── Controls ── */
-.ctrl-row { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
-.lbl { font-size:11.5px; font-weight:600; color:var(--sub); white-space:nowrap; flex-shrink:0; }
-.sw { display:flex; gap:4px; flex:1; }
-.pill { flex:1; border:1.5px solid var(--border); background:var(--card); border-radius:var(--rf); padding:5px 8px; font-size:11.5px; font-weight:600; cursor:pointer; transition:all .15s; color:var(--sub); text-align:center; white-space:nowrap; }
-.pill.active { border-color:var(--accent); background:var(--accent-bg); color:var(--accent); }
-
 /* ── Go Button ── */
 .go-btn { width:100%; border:none; background:linear-gradient(135deg,#7C6FBE,#9B7ED9); color:#fff; padding:11px; border-radius:var(--r); font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:opacity .15s,transform .15s; box-shadow:0 3px 12px rgba(124,111,190,.25); }
 .go-btn:hover { transform:translateY(-1px); opacity:.92; }

@@ -27,14 +27,6 @@
       </div>
       <button class="add-btn" id="btn-add-option">＋ 添加选项</button>
 
-      <div class="ctrl-row">
-        <span class="lbl">规则</span>
-        <div class="sw">
-          <button class="pill active" data-rule="high">大者胜</button>
-          <button class="pill" data-rule="low">小者胜</button>
-        </div>
-      </div>
-
       <button class="go-btn" id="btn-roll">🎲 掷骰对决</button>
     </section>
 
@@ -93,9 +85,16 @@
         <span class="sgi">🎨</span><span class="sgl">深色模式</span>
         <div class="tgl" id="set-theme"></div>
       </div>
-      <div class="sg sg-last">
+      <div class="sg">
         <span class="sgi">🕶️</span><span class="sgl">无痕模式</span>
         <div class="tgl" id="set-incognito"></div>
+      </div>
+      <div class="sg">
+        <span class="sgi">🏆</span><span class="sgl">默认规则</span>
+        <div class="seg" id="set-rule">
+          <button class="seg-btn active" data-v="high">大者胜</button>
+          <button class="seg-btn" data-v="low">小者胜</button>
+        </div>
       </div>
     </div>
   </aside>

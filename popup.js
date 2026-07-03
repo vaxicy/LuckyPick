@@ -336,7 +336,6 @@ function loadSettings(cb){
     history=res.luckypick_history||[];
     applyTheme();
     applyI18n();
-    $$('.pill[data-rule]').forEach(b=>b.classList.toggle('active',b.dataset.rule===rule));
     updateLucky();if(cb)cb();
   });
 }
@@ -350,6 +349,7 @@ function openSettingsPanel(){
   $('#set-theme').classList.toggle('on',theme==='dark');
   $('#set-incognito').classList.toggle('on',incognito);
   $$('#set-lang .seg-btn').forEach(b=>b.classList.toggle('active',b.dataset.v===lang));
+  $$('#set-rule .seg-btn').forEach(b=>b.classList.toggle('active',b.dataset.v===rule));
   $('#settings-panel').classList.remove('hidden');
   $('#panel-overlay').classList.remove('hidden');
 }
@@ -361,10 +361,10 @@ function init(){
 
     $('#btn-add-option').onclick=()=>addRow();
 
-    $$('.pill[data-rule]').forEach(btn=>{
+    $$('#set-rule .seg-btn').forEach(btn=>{
       btn.onclick=()=>{
-        rule=btn.dataset.rule;
-        $$('.pill[data-rule]').forEach(b=>b.classList.remove('active'));
+        rule=btn.dataset.v;
+        $$('#set-rule .seg-btn').forEach(b=>b.classList.remove('active'));
         btn.classList.add('active');
         saveSettings();
       };
