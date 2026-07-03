@@ -4,7 +4,7 @@
 
 const I18N={
   zh:{
-    app_name:'别纠结了 / Don\'t Hesitate',
+    app_name:'别纠结了',
     roll_btn:'掷骰对决',
     battle_title:'掷骰中...',
     winner_label:'获胜者',
@@ -19,7 +19,7 @@ const I18N={
     result_msgs:['命运已经替你决定了~','别纠结啦，就是它了！','宇宙选择了这个答案','今天就听幸运的吧','再犹豫就不礼貌了','骰子说：就是它！','幸运女神选中了这一项','相信它吧！']
   },
   en:{
-    app_name:'Don\'t Hesitate / 别纠结了',
+    app_name:'Lucky Picker',
     roll_btn:'Roll!',
     battle_title:'Rolling...',
     winner_label:'WINNER',

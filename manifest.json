@@ -3,7 +3,7 @@
   "name": "__MSG_extension_name__",
   "default_locale": "zh_CN",
   "version": "1.0.0",
-  "description": "A tiny dice decision helper.",
+  "description": "__MSG_extension_description__",
   "permissions": ["storage"],
   "action": {
     "default_popup": "popup.html",
