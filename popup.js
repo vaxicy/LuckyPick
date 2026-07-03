@@ -29,7 +29,14 @@ const I18N={
     incognito_label:'无痕模式',
     rule_label:'默认规则',
     rule_high:'大者胜',
-    rule_low:'小者胜'
+    rule_low:'小者胜',
+    dice_tab:'🎲 摇骰子',
+    coin_tab:'🪙 抛硬币',
+    coin_btn:'🪙 抛硬币',
+    coin_flipping:'抛硬币中...',
+    coin_heads:'正面',
+    coin_tails:'反面',
+    coin_result_msgs:['命运说：正面！','反面也自有道理','硬币替你决定了','正面还是反面，都是天意','让硬币替你做主','这次是正面哦','反面带来的好运','抛硬币从不说谎']
   },
   en:{
     app_name:'Lucky Picker',
@@ -57,12 +64,19 @@ const I18N={
     incognito_label:'Incognito',
     rule_label:'Default Rule',
     rule_high:'Highest',
-    rule_low:'Lowest'
+    rule_low:'Lowest',
+    dice_tab:'🎲 Roll Dice',
+    coin_tab:'🪙 Coin Flip',
+    coin_btn:'🪙 Flip Coin',
+    coin_flipping:'Flipping...',
+    coin_heads:'Heads',
+    coin_tails:'Tails',
+    coin_result_msgs:['Heads it is!','Tails never lies','The coin has spoken','Let the coin decide','Trust the flip','Heads or tails, fate decides','Listen to the coin','This is the one!']
   }
 };
 
 // State
-let lang='zh',theme='light',rule='high',incognito=false,isRolling=false;
+let lang='zh',theme='light',rule='high',incognito=false,isRolling=false,mode='dice';
 let history=[],optionCount=2;
 
 const $=s=>document.querySelector(s);
@@ -74,6 +88,10 @@ function applyI18n(){
   $$('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});
   $$('[data-i18n-placeholder]').forEach(el=>{el.placeholder=t(el.dataset.i18nPlaceholder);});
   $$('[data-i18n-title]').forEach(el=>{el.title=t(el.dataset.i18nTitle);});
+  // Update tabs and go button
+  $('#tab-dice').textContent=t('dice_tab');
+  $('#tab-coin').textContent=t('coin_tab');
+  $('#btn-roll').textContent=t(mode==='coin'?'coin_btn':'roll_btn');
 }
 function applyTheme(){document.documentElement.setAttribute('data-theme',theme);}
 
@@ -110,7 +128,7 @@ function addRow(text){
 
 function bindRow(row){
   row.querySelector('.del').onclick=()=>{row.remove();optionCount--;reindex();};
-  row.querySelector('.inp').onkeydown=e=>{if(e.key==='Enter')doRoll();};
+  row.querySelector('.inp').onkeydown=e=>{if(e.key==='Enter')doAction();};
 }
 
 function reindex(){
@@ -120,11 +138,16 @@ function reindex(){
   });
 }
 
-// ── Core Roll ──
-function doRoll(){
+// ── Core Action ──
+function doAction(){
   if(isRolling)return;
   const opts=getOptions();
   if(opts.length<2){showToast(t('min_options'));return;}
+  if(mode==='coin')doCoinFlip(opts);
+  else doRoll(opts);
+}
+
+function doRoll(opts){
   isRolling=true;
   $('#btn-roll').classList.add('rolling');
 
@@ -135,6 +158,7 @@ function doRoll(){
   $('#result-section').classList.add('hidden');
   $('#battle-section').classList.remove('hidden');
   $('#footer-lucky').classList.add('hidden');
+  $('#battle-section .battle-tip').textContent=t('battle_title');
 
   buildStage(opts);
   animateRoll(opts,rolls,wi);
@@ -142,6 +166,22 @@ function doRoll(){
 
 function buildStage(opts){
   const st=$('#dice-stage');st.innerHTML='';
+  if(mode==='coin'){
+    st.classList.add('coin-stage');
+    const coin=document.createElement('div');coin.className='coin3d';
+    coin.innerHTML=`
+      <div class="coin-face coin-heads">
+        <span class="coin-icon">🪙</span>
+        <span class="coin-opt">${(opts[0]||'').length>6?(opts[0]||'').slice(0,6)+'..':(opts[0]||'')}</span>
+      </div>
+      <div class="coin-face coin-tails">
+        <span class="coin-icon">💰</span>
+        <span class="coin-opt">${(opts[1]||'').length>6?(opts[1]||'').slice(0,6)+'..':(opts[1]||'')}</span>
+      </div>`;
+    coin.style.transform='rotateX('+(Math.random()*360)+'deg)';
+    st.appendChild(coin);
+  }else{
+    st.classList.remove('coin-stage');
   opts.forEach(o=>{
     const u=document.createElement('div');u.className='dice-unit';
     const dc=createDice();
@@ -152,6 +192,52 @@ function buildStage(opts){
     u.appendChild(lb);
     st.appendChild(u);
   });
+  }
+}
+
+// ── Coin Flip ──
+function doCoinFlip(opts){
+  isRolling=true;
+  $('#btn-roll').classList.add('rolling');
+  const wi=Math.random()<0.5?0:1;
+  $('#input-section').classList.add('hidden');
+  $('#result-section').classList.add('hidden');
+  $('#battle-section').classList.remove('hidden');
+  $('#footer-lucky').classList.add('hidden');
+  $('#battle-section .battle-tip').textContent=t('coin_flipping');
+  buildStage(opts);
+  animateCoin(opts,wi);
+}
+
+function animateCoin(opts,wi){
+  const coin=$('.coin3d'),DUR=2200,t0=performance.now();
+  const targetXRot=wi===0?0:180;
+  let finalRot;
+
+  function tick(now){
+    const el=now-t0,p=Math.min(el/DUR,1);
+    $('#progress-bar').style.width=(p*100)+'%';
+
+    let rx;
+    if(p<0.8){
+      rx=el/1000*900;
+    }else{
+      const eased=(p-0.8)/0.2;
+      const extra=Math.ceil((el/1000*900)/360)*360;
+      rx=targetXRot+(1-Math.pow(1-eased,3))*360+extra*(1-eased);
+    }
+    coin.style.transform='rotateX('+rx+'deg)';
+
+    if(p>=1){
+      coin.style.transform='rotateX('+targetXRot+'deg)';
+      coin.style.transition='transform .45s cubic-bezier(.22,1.36,.36,1)';
+      setTimeout(()=>showResult(opts,[],wi),750);
+    }else{
+      coin.style.transition='none';
+      requestAnimationFrame(tick);
+    }
+  }
+  requestAnimationFrame(tick);
 }
 
 function animateRoll(opts,rolls,wi){
@@ -211,11 +297,34 @@ function showResult(opts,rolls,wi){
   isRolling=false;
   $('#btn-roll').classList.remove('rolling');
 
-  const msgs=I18N[lang].result_msgs;
+  const isCoin=mode==='coin';
+  const msgs=I18N[lang][isCoin?'coin_result_msgs':'result_msgs'];
   $('#result-winner').textContent=opts[wi];
   $('#result-msg').textContent=msgs[Math.floor(Math.random()*msgs.length)];
 
+  // Toggle coin mode class on result section
+  $('#result-section').classList.toggle('coin-mode',isCoin);
+
   const dv=$('#result-dice-visual');dv.innerHTML='';
+
+  if(isCoin){
+    // Coin result: big centered coin + option name + side
+    const side=wi===0?'heads':'tails';
+    const sideText=wi===0?t('coin_heads'):t('coin_tails');
+    const icon=wi===0?'🪙':'💰';
+    dv.innerHTML=`
+      <div class="cr-wrap">
+        <div class="cr-coin ${side}">
+          <span class="cr-icon">${icon}</span>
+          <span class="cr-side">${sideText}</span>
+        </div>
+        <div class="cr-info">
+          <span class="cr-name">${opts[wi]}</span>
+          <span class="cr-sep">·</span>
+          <span class="cr-side-text">${sideText}</span>
+        </div>
+      </div>`;
+  }else{
   opts.forEach((o,i)=>{
     const unit=document.createElement('div');
     unit.className='dv-unit'+(i===wi?' win':'');
@@ -235,6 +344,7 @@ function showResult(opts,rolls,wi){
     }
   });
 
+  }
   spawnConf();
   if(!incognito) saveHist(opts,rolls,wi);
   updateLucky();
@@ -263,7 +373,7 @@ function showToast(msg){
 }
 
 // ── History ──
-function saveHist(o,r,w){history.unshift({id:Date.now(),options:o,rolls:r,totals:r,winnerIdx:w,rule,createdAt:new Date().toISOString()});if(history.length>100)history.pop();chrome.storage.local.set({luckypick_history:history});}
+function saveHist(o,r,w){history.unshift({id:Date.now(),type:mode,options:o,rolls:r,totals:r,winnerIdx:w,rule,createdAt:new Date().toISOString()});if(history.length>100)history.pop();chrome.storage.local.set({luckypick_history:history});}
 function renderH(){
   const l=$('#history-list');
   if(incognito){
@@ -277,7 +387,12 @@ function renderH(){
   const ic=['','⚀','⚁','⚂','⚃','⚄','⚅'];
   history.forEach((rec,i)=>{
     const el=document.createElement('div');el.className='hi';el.style.cursor='pointer';
-    el.innerHTML=`<div class="hw">🎲 ${rec.options[rec.winnerIdx]}</div><div class="ho">${rec.options.map((o,j)=>ic[rec.totals[j]]+o).join('　')}</div><div class="hm"><span>${new Date(rec.createdAt).toLocaleDateString().slice(5)} ${new Date(rec.createdAt).toTimeString().slice(0,5)}</span><button class="hd-b" data-i="${i}">🗑</button></div>`;
+    const isCoinEntry=rec.type==='coin';
+    const histIcon=isCoinEntry?'🪙':'🎲';
+    const detailLine=isCoinEntry
+      ?`${rec.options[rec.winnerIdx]} (${rec.winnerIdx===0?t('coin_heads'):t('coin_tails')})`
+      :rec.options.map((o,j)=>ic[rec.totals[j]]+o).join('　');
+    el.innerHTML=`<div class="hw">${histIcon} ${rec.options[rec.winnerIdx]}</div><div class="ho">${detailLine}</div><div class="hm"><span>${new Date(rec.createdAt).toLocaleDateString().slice(5)} ${new Date(rec.createdAt).toTimeString().slice(0,5)}</span><button class="hd-b" data-i="${i}">🗑</button></div>`;
     el.addEventListener('click',()=>{
       closeAllPanels();
       const ol=$('#options-list');ol.innerHTML='';optionCount=0;
@@ -292,7 +407,8 @@ function renderH(){
       $('#battle-section').classList.add('hidden');
       $('#input-section').classList.remove('hidden');
       $('#footer-lucky').classList.remove('hidden');
-      doRoll();
+      if(isCoinEntry&&mode!=='coin')switchMode('coin');
+      doAction();
     });
     l.appendChild(el);
   });
@@ -304,11 +420,14 @@ function clearH(){if(confirm(lang==='zh'?'清空所有历史？':'Clear all?')){
 function exportAsImage(){
   const winnerName=$('#result-winner').textContent;
   const msg=$('#result-msg').textContent;
-  const diceData=Array.from($$('#result-dice-visual .dv-unit')).map(u=>{
-    const n=u.querySelector('.dv-num').textContent;
-    const lb=u.querySelector('.dv-label').textContent;
-    return `${lb}(${n})`;
-  });
+  const isCoinExport=mode==='coin';
+  const diceData=isCoinExport
+    ?[t('coin_heads'),t('coin_tails')]
+    :Array.from($$('#result-dice-visual .dv-unit')).map(u=>{
+      const n=u.querySelector('.dv-num').textContent;
+      const lb=u.querySelector('.dv-label').textContent;
+      return `${lb}(${n})`;
+    });
 
   const W=400,H=280;
   const canvas=document.createElement('canvas');
@@ -354,7 +473,7 @@ function exportAsImage(){
 
   ctx.font='12px sans-serif';ctx.fillStyle=subColor;
   ctx.textAlign='center';
-  ctx.fillText(diceData.join('  VS  '),W/2,H/2+24);
+  ctx.fillText(isCoinExport?('🪙 '+diceData[0]+' / '+diceData[1]):diceData.join('  VS  '),W/2,H/2+24);
 
   ctx.font='italic 12px sans-serif';ctx.fillStyle=subColor;
   ctx.fillText(msg,W/2,H/2+50);
@@ -395,14 +514,14 @@ function updateLucky(){
 function loadSettings(cb){
   chrome.storage.local.get(['luckypick_settings','luckypick_history'],res=>{
     const s=res.luckypick_settings||{};
-    lang=s.lang||'zh';theme=s.theme||'light';rule=s.rule||'high';incognito=!!s.incognito;
+    lang=s.lang||'zh';theme=s.theme||'light';rule=s.rule||'high';incognito=!!s.incognito;mode=s.mode||'dice';
     history=res.luckypick_history||[];
     applyTheme();
     applyI18n();
     updateLucky();if(cb)cb();
   });
 }
-function saveSettings(){chrome.storage.local.set({luckypick_settings:{lang,theme,rule,incognito}});}
+function saveSettings(){chrome.storage.local.set({luckypick_settings:{lang,theme,rule,incognito,mode}});}
 
 // ── Panel ──
 function openHistoryPanel(){$('#history-panel').classList.remove('hidden');$('#panel-overlay').classList.remove('hidden');renderH();}
@@ -417,12 +536,40 @@ function openSettingsPanel(){
   $('#panel-overlay').classList.remove('hidden');
 }
 
+// ── Mode Switch ──
+function switchMode(m){
+  if(isRolling)return;
+  mode=m;
+  $$('.mt-btn').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
+  const isCoin=mode==='coin';
+  $('#btn-add-option').classList.toggle('hidden',isCoin);
+  // Coin mode: trim to 2 options
+  if(isCoin&&optionCount>2){while(optionCount>2){$$('.row')[2].remove();optionCount--;}reindex();}
+  // Update go button
+  $('#btn-roll').textContent=t(isCoin?'coin_btn':'roll_btn');
+  // Reset UI
+  $('#battle-section').classList.add('hidden');
+  $('#result-section').classList.add('hidden');
+  $('#input-section').classList.remove('hidden');
+  $('#footer-lucky').classList.remove('hidden');
+  saveSettings();
+}
+
 // ── Init ──
 function init(){
   loadSettings(()=>{
     $$('.row').forEach(bindRow);
 
     $('#btn-add-option').onclick=()=>addRow();
+
+    // Mode tabs
+    $$('.mt-btn').forEach(b=>{b.classList.toggle('active',b.dataset.mode===mode);});
+    const isCoinInit=mode==='coin';
+    $('#btn-add-option').classList.toggle('hidden',isCoinInit);
+    if(isCoinInit&&optionCount>2){while(optionCount>2){$$('.row')[2].remove();optionCount--;}reindex();}
+    $('#btn-roll').textContent=t(isCoinInit?'coin_btn':'roll_btn');
+    $('#tab-dice').onclick=()=>switchMode('dice');
+    $('#tab-coin').onclick=()=>switchMode('coin');
 
     $$('#set-rule .seg-btn').forEach(btn=>{
       btn.onclick=()=>{
@@ -433,7 +580,7 @@ function init(){
       };
     });
 
-    $('#btn-roll').onclick=doRoll;
+    $('#btn-roll').onclick=doAction;
 
     $('#btn-again').onclick=()=>{
       $('#result-section').classList.add('hidden');
@@ -472,10 +619,10 @@ function init(){
 
     document.addEventListener('keydown',e=>{
       if(e.key==='Enter'&&e.ctrlKey&&!isRolling&&!$('#input-section').classList.contains('hidden')){
-        e.preventDefault();doRoll();return;
+        e.preventDefault();doAction();return;
       }
       if(e.key==='Enter'&&!isRolling&&!$('#input-section').classList.contains('hidden')&&document.activeElement.tagName!=='INPUT')
-        doRoll();
+        doAction();
     });
   });
 }
