@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=320">
+  <title>LuckyPick</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="hd">
+    <div class="hd-left"><span class="logo">🎲</span><span class="app-name" id="app-name">LuckyPick</span></div>
+    <div class="hd-right">
+      <button class="ib" id="btn-history" title="历史">📋</button>
+      <button class="ib" id="btn-settings" title="设置">⚙️</button>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <!-- 输入区 -->
+    <section id="input-section">
+      <div class="opt-list" id="options-list">
+        <div class="row"><span class="badge bg-a">A</span><input class="inp" placeholder="选项 A..." autofocus><button class="del">×</button></div>
+        <div class="row"><span class="badge bg-b">B</span><input class="inp" placeholder="选项 B..."><button class="del">×</button></div>
+      </div>
+      <button class="add-btn" id="btn-add-option">＋ 添加选项</button>
+
+      <div class="ctrl-row">
+        <span class="lbl">规则</span>
+        <div class="sw">
+          <button class="pill active" data-rule="high">大者胜</button>
+          <button class="pill" data-rule="low">小者胜</button>
+        </div>
+      </div>
+
+      <button class="go-btn" id="btn-roll">🎲 掷骰对决</button>
+    </section>
+
+    <!-- 动画区 -->
+    <section class="battle hidden" id="battle-section">
+      <div class="battle-tip">掷骰中...</div>
+      <div class="stage" id="dice-stage"></div>
+      <div class="bar-track"><div class="bar-fill" id="progress-bar"></div></div>
+    </section>
+
+    <!-- 结果区 -->
+    <section class="result hidden" id="result-section">
+      <div class="confetti-wrap" id="confetti-container"></div>
+      <div class="winner-card">
+        <div class="wlbl">获胜者</div>
+        <div class="wname" id="result-winner"></div>
+      </div>
+      <div class="wmsg" id="result-msg"></div>
+      <div class="chip-row" id="result-dice-show"></div>
+      <div class="acts">
+        <button class="ab ab-main" id="btn-again">再来一局</button>
+        <button class="ab" id="btn-export">📸 导出</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 底部幸运 -->
+  <footer class="ft" id="footer-lucky">
+    <div class="lucky-card">
+      <span class="lucky-icon">🍀</span>
+      <span class="lucky-tip" id="lucky-tip"></span>
+    </div>
+  </footer>
+
+  <!-- 历史面板 -->
+  <div class="ov hidden" id="panel-overlay"></div>
+  <aside class="panel hidden" id="history-panel">
+    <div class="ph"><h2>📋 历史记录</h2><button class="cb" id="btn-close-panel">✕</button></div>
+    <div class="pb" id="history-list"><div class="pe">暂无记录</div></div>
+    <div class="pf"><button class="clrb" id="btn-clear-history">清空历史</button></div>
+  </aside>
+
+  <!-- 设置面板 -->
+  <aside class="panel hidden" id="settings-panel">
+    <div class="ph"><h2>⚙️ 设置</h2><button class="cb" id="btn-close-settings">✕</button></div>
+    <div class="pb spb">
+      <div class="sg">
+        <span class="sgi">🌐</span><span class="sgl">语言 / Language</span>
+        <div class="seg" id="set-lang">
+          <button class="seg-btn active" data-v="zh">中文</button>
+          <button class="seg-btn" data-v="en">English</button>
+        </div>
+      </div>
+      <div class="sg">
+        <span class="sgi">🎨</span><span class="sgl">深色模式</span>
+        <div class="tgl" id="set-theme"></div>
+      </div>
+      <div class="sg sg-last">
+        <span class="sgi">🕶️</span><span class="sgl">无痕模式</span>
+        <div class="tgl" id="set-incognito"></div>
+      </div>
+    </div>
+  </aside>
+
+  <script src="popup.js"></script>
+</body>
+</html>

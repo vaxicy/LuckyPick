@@ -1,0 +1,10 @@
+{
+  "extension_name": {
+    "message": "别纠结了 / Don't Hesitate",
+    "description": "Extension name"
+  },
+  "extension_description": {
+    "message": "选择困难？掷骰子帮你决定 · Decision dice helper",
+    "description": "Extension description"
+  }
+}
