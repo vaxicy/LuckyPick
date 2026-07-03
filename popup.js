@@ -5,33 +5,59 @@
 const I18N={
   zh:{
     app_name:'别纠结了',
-    roll_btn:'掷骰对决',
+    roll_btn:'🎲 掷骰对决',
     battle_title:'掷骰中...',
     winner_label:'获胜者',
     again:'再来一局',
-    export:'导出',
-    history_title:'历史记录',
+    export_btn:'📸 导出',
+    history_title:'📋 历史记录',
     history_empty:'暂无记录',
     history_incognito:'无痕模式下不保存记录',
     clear_history:'清空历史',
     exported:'已导出图片 ✨',
     min_options:'至少需要 2 个选项哦~',
-    result_msgs:['命运已经替你决定了~','别纠结啦，就是它了！','宇宙选择了这个答案','今天就听幸运的吧','再犹豫就不礼貌了','骰子说：就是它！','幸运女神选中了这一项','相信它吧！']
+    result_msgs:['命运已经替你决定了~','别纠结啦，就是它了！','宇宙选择了这个答案','今天就听幸运的吧','再犹豫就不礼貌了','骰子说：就是它！','幸运女神选中了这一项','相信它吧！'],
+    add_option:'＋ 添加选项',
+    opt_placeholder_a:'选项 A...',
+    opt_placeholder_b:'选项 B...',
+    opt_placeholder:'选项 {0}...',
+    settings_title:'⚙️ 设置',
+    settings_tip:'设置',
+    history_tip:'历史记录',
+    language:'语言 / Language',
+    theme_label:'深色模式',
+    incognito_label:'无痕模式',
+    rule_label:'默认规则',
+    rule_high:'大者胜',
+    rule_low:'小者胜'
   },
   en:{
     app_name:'Lucky Picker',
-    roll_btn:'Roll!',
+    roll_btn:'🎲 Roll!',
     battle_title:'Rolling...',
     winner_label:'WINNER',
     again:'Again',
-    export:'Export',
-    history_title:'History',
+    export_btn:'📸 Export',
+    history_title:'📋 History',
     history_empty:'No records',
     history_incognito:'Incognito mode: no history saved',
     clear_history:'Clear All',
     exported:'Image exported! ✨',
     min_options:'Need 2+ options!',
-    result_msgs:['The universe has spoken',"It's this one!",'Fate has chosen','Trust your luck','Don\'t argue with destiny','The dice say: this is it!','Lady Luck picked this','Best outcome, believe it!']
+    result_msgs:['The universe has spoken',"It's this one!",'Fate has chosen','Trust your luck','Don\'t argue with destiny','The dice say: this is it!','Lady Luck picked this','Best outcome, believe it!'],
+    add_option:'+ Add Option',
+    opt_placeholder_a:'Option A...',
+    opt_placeholder_b:'Option B...',
+    opt_placeholder:'Option {0}...',
+    settings_title:'⚙️ Settings',
+    settings_tip:'Settings',
+    history_tip:'History',
+    language:'Language',
+    theme_label:'Dark Mode',
+    incognito_label:'Incognito',
+    rule_label:'Default Rule',
+    rule_high:'Highest',
+    rule_low:'Lowest'
   }
 };
 
@@ -43,7 +69,12 @@ const $=s=>document.querySelector(s);
 const $$=s=>document.querySelectorAll(s);
 function t(k){return(I18N[lang]&&I18N[lang][k])||I18N.zh[k]||k;}
 
-function applyI18n(){$('#app-name').textContent=t('app_name');}
+function applyI18n(){
+  $('#app-name').textContent=t('app_name');
+  $$('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});
+  $$('[data-i18n-placeholder]').forEach(el=>{el.placeholder=t(el.dataset.i18nPlaceholder);});
+  $$('[data-i18n-title]').forEach(el=>{el.title=t(el.dataset.i18nTitle);});
+}
 function applyTheme(){document.documentElement.setAttribute('data-theme',theme);}
 
 // ── Dice Model ──
@@ -73,7 +104,7 @@ function addRow(text){
   if(optionCount>=8)return;optionCount++;
   const l=$('#options-list'),letter=String.fromCharCode(64+optionCount);
   const r=document.createElement('div');r.className='row';
-  r.innerHTML=`<span class="badge" style="${BC[(optionCount-1)%8]}">${letter}</span><input class="inp" placeholder="选项 ${letter}..." value="${text||''}"><button class="del">×</button>`;
+  r.innerHTML=`<span class="badge" style="${BC[(optionCount-1)%8]}">${letter}</span><input class="inp" placeholder="${t('opt_placeholder').replace('{0}',letter)}" value="${text||''}"><button class="del">×</button>`;
   l.appendChild(r);bindRow(r);
 }
 
@@ -245,11 +276,27 @@ function renderH(){
   l.innerHTML='';
   const ic=['','⚀','⚁','⚂','⚃','⚄','⚅'];
   history.forEach((rec,i)=>{
-    const el=document.createElement('div');el.className='hi';
+    const el=document.createElement('div');el.className='hi';el.style.cursor='pointer';
     el.innerHTML=`<div class="hw">🎲 ${rec.options[rec.winnerIdx]}</div><div class="ho">${rec.options.map((o,j)=>ic[rec.totals[j]]+o).join('　')}</div><div class="hm"><span>${new Date(rec.createdAt).toLocaleDateString().slice(5)} ${new Date(rec.createdAt).toTimeString().slice(0,5)}</span><button class="hd-b" data-i="${i}">🗑</button></div>`;
+    el.addEventListener('click',()=>{
+      closeAllPanels();
+      const ol=$('#options-list');ol.innerHTML='';optionCount=0;
+      rec.options.forEach(o=>{
+        optionCount++;
+        const letter=String.fromCharCode(64+optionCount);
+        const r=document.createElement('div');r.className='row';
+        r.innerHTML=`<span class="badge" style="${BC[(optionCount-1)%8]}">${letter}</span><input class="inp" placeholder="${t('opt_placeholder').replace('{0}',letter)}" value="${o}"><button class="del">×</button>`;
+        ol.appendChild(r);bindRow(r);
+      });
+      $('#result-section').classList.add('hidden');
+      $('#battle-section').classList.add('hidden');
+      $('#input-section').classList.remove('hidden');
+      $('#footer-lucky').classList.remove('hidden');
+      doRoll();
+    });
     l.appendChild(el);
   });
-  l.querySelectorAll('.hd-b').forEach(b=>{b.onclick=()=>{history.splice(+b.dataset.i,1);chrome.storage.local.set({luckypick_history:history});renderH();};});
+  l.querySelectorAll('.hd-b').forEach(b=>{b.onclick=(e)=>{e.stopPropagation();history.splice(+b.dataset.i,1);chrome.storage.local.set({luckypick_history:history});renderH();};});
 }
 function clearH(){if(confirm(lang==='zh'?'清空所有历史？':'Clear all?')){history=[];chrome.storage.local.set({luckypick_history:[]});renderH();}}
 
@@ -335,8 +382,8 @@ function dailyL(){
   const d=new Date(),seed=d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();
   const sr=n=>Math.sin(n*9999)-Math.floor(Math.sin(n*9999));
   const tips=lang==='zh'
-    ?['适合尝试新事物','相信直觉','运气在勇敢者这边','今天适合做决定','跟着心走就对了','幸运偏爱行动派','适合和朋友聚会','放轻松好事即将发生']
-    :['Try something new','Trust your gut','Fortune favors bold','Great day to decide','Follow heart','Luck loves action','Hang with friends','Relax, good things coming'];
+    ?['适合尝试新事物','相信直觉','运气在勇敢者这边','今天适合做决定','跟着心走就对了','幸运偏爱行动派','适合和朋友聚会','放轻松好事即将发生','别想太多，去做就对了','今天可能会遇到惊喜','保持微笑，好运自来','勇敢迈出第一步','顺其自然，水到渠成','今天的努力是明天的运气','心存善意，必有回响','偶尔任性一下没关系','新的一天，新的可能','好事多磨，耐心等待','做自己，不需要理由','阳光总在风雨后','每一步都算数','今天比昨天更靠近目标','停下来，深呼吸，再出发','运气是你自己的选择','偶尔迷茫也没关系','拥抱不确定性','今天的你特别幸运','大声说出你的想法','小确幸就在身边','别怕犯错，试了才知道','换个角度看世界','你是自己的锦鲤','今天出门会有好事','对陌生人微笑试试','去做那件一直想做的事','相信过程','简单的事情重复做','心态决定运气','允许一切发生','今天的烦恼明天就忘了','别比较，你是独一无二的','好运正在派送中','享受当下这一刻','你的坚持终将美好','给自己一个小奖励','有人正在偷偷喜欢你','万事开头难，后面也不难','今天是个好日子','保持好奇心','你已经很棒了']
+    :['Try something new','Trust your gut','Fortune favors the bold','Great day to decide','Follow your heart','Luck loves action','Hang with friends','Relax, good things coming','Don\'t overthink, just do it','A surprise may await today','Keep smiling, luck follows','Take that first brave step','Let it flow, everything clicks','Today\'s effort is tomorrow\'s luck','Kindness always echoes back','It\'s okay to be spontaneous','New day, new possibilities','Good things take time','Be yourself, no reasons needed','Sunshine after the storm','Every step counts','Closer to your goal than yesterday','Pause, breathe, and continue','You create your own luck','It\'s okay to feel lost sometimes','Embrace the unknown','You are extra lucky today','Speak your mind','Tiny joys are everywhere','Don\'t fear mistakes, just try','See things from a new angle','You are your own lucky charm','Something good awaits you outside','Try smiling at a stranger','Do the thing you\'ve been putting off','Trust the process','Simple things, done consistently','Your mindset shapes your luck','Let everything unfold naturally','Today\'s worries fade tomorrow','Don\'t compare, you are unique','Good luck is on its way','Enjoy this very moment','Your persistence will bloom','Treat yourself to something nice','Someone out there likes you','The hardest part is starting','Today is a good day','Stay curious','You are already amazing'];
   return {tip:tips[Math.floor(Math.abs(sr(seed+2))*tips.length)]};
 }
 function updateLucky(){
@@ -408,7 +455,7 @@ function init(){
       lang=b.dataset.v;
       $$('#set-lang .seg-btn').forEach(x=>x.classList.remove('active'));
       b.classList.add('active');
-      saveSettings();
+      applyI18n();updateLucky();saveSettings();
     });
 
     $('#set-theme').onclick=()=>{
@@ -424,6 +471,9 @@ function init(){
     };
 
     document.addEventListener('keydown',e=>{
+      if(e.key==='Enter'&&e.ctrlKey&&!isRolling&&!$('#input-section').classList.contains('hidden')){
+        e.preventDefault();doRoll();return;
+      }
       if(e.key==='Enter'&&!isRolling&&!$('#input-section').classList.contains('hidden')&&document.activeElement.tagName!=='INPUT')
         doRoll();
     });

@@ -12,8 +12,8 @@
   <header class="hd">
     <div class="hd-left"><span class="logo">🎲</span><span class="app-name" id="app-name">LuckyPick</span></div>
     <div class="hd-right">
-      <button class="ib" id="btn-history" title="历史">📋</button>
-      <button class="ib" id="btn-settings" title="设置">⚙️</button>
+      <button class="ib" id="btn-history" data-i18n-title="history_tip" title="历史记录">📋</button>
+      <button class="ib" id="btn-settings" data-i18n-title="settings_tip" title="设置">⚙️</button>
     </div>
   </header>
 
@@ -22,17 +22,17 @@
     <!-- 输入区 -->
     <section id="input-section">
       <div class="opt-list" id="options-list">
-        <div class="row"><span class="badge bg-a">A</span><input class="inp" placeholder="选项 A..." autofocus><button class="del">×</button></div>
-        <div class="row"><span class="badge bg-b">B</span><input class="inp" placeholder="选项 B..."><button class="del">×</button></div>
+        <div class="row"><span class="badge" style="background:#E88BA8">A</span><input class="inp" data-i18n-placeholder="opt_placeholder_a" placeholder="选项 A..." autofocus><button class="del">×</button></div>
+        <div class="row"><span class="badge" style="background:#6BAFE0">B</span><input class="inp" data-i18n-placeholder="opt_placeholder_b" placeholder="选项 B..."><button class="del">×</button></div>
       </div>
-      <button class="add-btn" id="btn-add-option">＋ 添加选项</button>
+      <button class="add-btn" id="btn-add-option" data-i18n="add_option">＋ 添加选项</button>
 
-      <button class="go-btn" id="btn-roll">🎲 掷骰对决</button>
+      <button class="go-btn" id="btn-roll" data-i18n="roll_btn">🎲 掷骰对决</button>
     </section>
 
     <!-- 动画区 -->
     <section class="battle hidden" id="battle-section">
-      <div class="battle-tip">掷骰中...</div>
+      <div class="battle-tip" data-i18n="battle_title">掷骰中...</div>
       <div class="stage" id="dice-stage"></div>
       <div class="bar-track"><div class="bar-fill" id="progress-bar"></div></div>
     </section>
@@ -41,14 +41,14 @@
     <section class="result hidden" id="result-section">
       <div class="confetti-wrap" id="confetti-container"></div>
       <div class="winner-card">
-        <div class="wlbl">获胜者</div>
+        <div class="wlbl" data-i18n="winner_label">获胜者</div>
         <div class="wname" id="result-winner"></div>
       </div>
       <div class="dice-visual" id="result-dice-visual"></div>
       <div class="wmsg" id="result-msg"></div>
       <div class="acts">
-        <button class="ab ab-main" id="btn-again">再来一局</button>
-        <button class="ab" id="btn-export">📸 导出</button>
+        <button class="ab ab-main" id="btn-again" data-i18n="again">再来一局</button>
+        <button class="ab" id="btn-export" data-i18n="export_btn">📸 导出</button>
       </div>
     </section>
 
@@ -65,35 +65,35 @@
   <!-- 历史面板 -->
   <div class="ov hidden" id="panel-overlay"></div>
   <aside class="panel hidden" id="history-panel">
-    <div class="ph"><h2>📋 历史记录</h2><button class="cb" id="btn-close-panel">✕</button></div>
-    <div class="pb" id="history-list"><div class="pe">暂无记录</div></div>
-    <div class="pf"><button class="clrb" id="btn-clear-history">清空历史</button></div>
+    <div class="ph"><h2 data-i18n="history_title">📋 历史记录</h2><button class="cb" id="btn-close-panel">✕</button></div>
+    <div class="pb" id="history-list"><div class="pe" data-i18n="history_empty">暂无记录</div></div>
+    <div class="pf"><button class="clrb" id="btn-clear-history" data-i18n="clear_history">清空历史</button></div>
   </aside>
 
   <!-- 设置面板 -->
   <aside class="panel hidden" id="settings-panel">
-    <div class="ph"><h2>⚙️ 设置</h2><button class="cb" id="btn-close-settings">✕</button></div>
+    <div class="ph"><h2 data-i18n="settings_title">⚙️ 设置</h2><button class="cb" id="btn-close-settings">✕</button></div>
     <div class="pb spb">
       <div class="sg">
-        <span class="sgi">🌐</span><span class="sgl">语言 / Language</span>
+        <span class="sgi">🌐</span><span class="sgl" data-i18n="language">语言 / Language</span>
         <div class="seg" id="set-lang">
           <button class="seg-btn active" data-v="zh">中文</button>
           <button class="seg-btn" data-v="en">English</button>
         </div>
       </div>
       <div class="sg">
-        <span class="sgi">🎨</span><span class="sgl">深色模式</span>
+        <span class="sgi">🎨</span><span class="sgl" data-i18n="theme_label">深色模式</span>
         <div class="tgl" id="set-theme"></div>
       </div>
       <div class="sg">
-        <span class="sgi">🕶️</span><span class="sgl">无痕模式</span>
+        <span class="sgi">🕶️</span><span class="sgl" data-i18n="incognito_label">无痕模式</span>
         <div class="tgl" id="set-incognito"></div>
       </div>
       <div class="sg">
-        <span class="sgi">🏆</span><span class="sgl">默认规则</span>
+        <span class="sgi">🏆</span><span class="sgl" data-i18n="rule_label">默认规则</span>
         <div class="seg" id="set-rule">
-          <button class="seg-btn active" data-v="high">大者胜</button>
-          <button class="seg-btn" data-v="low">小者胜</button>
+          <button class="seg-btn active" data-v="high" data-i18n="rule_high">大者胜</button>
+          <button class="seg-btn" data-v="low" data-i18n="rule_low">小者胜</button>
         </div>
       </div>
     </div>
