@@ -36,7 +36,12 @@ const I18N={
     coin_flipping:'抛硬币中...',
     coin_heads:'正面',
     coin_tails:'反面',
-    coin_result_msgs:['命运说：正面！','反面也自有道理','硬币替你决定了','正面还是反面，都是天意','让硬币替你做主','这次是正面哦','反面带来的好运','抛硬币从不说谎']
+    coin_result_heads:['就是正面！','正面命中注定','宇宙选择了正面','这次正面胜出','正面，不犹豫了','正面带来好运','听正面的！','正面从不骗人'],
+    coin_result_tails:['就是反面！','反面也自有道理','硬币选了反面','反面，天意如此','这次反面赢','反面带来的好运','听反面的！','反面从不说谎'],
+    wheel_tab:'🎡 转盘',
+    wheel_btn:'🎡 转一转',
+    wheel_spinning:'转盘中...',
+    wheel_result_msgs:['指针停在这里！','转盘替你决定了','命运转出了答案','今天就是这个了','别纠结，就是它！','转盘说：选它！','幸运轮选中的答案','相信转盘的选择']
   },
   en:{
     app_name:'Lucky Picker',
@@ -71,7 +76,12 @@ const I18N={
     coin_flipping:'Flipping...',
     coin_heads:'Heads',
     coin_tails:'Tails',
-    coin_result_msgs:['Heads it is!','Tails never lies','The coin has spoken','Let the coin decide','Trust the flip','Heads or tails, fate decides','Listen to the coin','This is the one!']
+    coin_result_heads:['Heads it is!','Heads was meant to be','The universe chose Heads','Heads wins this time','Heads, no more doubt','Good luck with Heads','Trust Heads!','Heads never lies'],
+    coin_result_tails:['Tails never lies','Tails has its own logic','The coin chose Tails','Tails, it is fate','Tails takes this one','Good luck with Tails','Trust Tails!','Tails always speaks the truth'],
+    wheel_tab:'🎡 Wheel',
+    wheel_btn:'🎡 Spin!',
+    wheel_spinning:'Spinning...',
+    wheel_result_msgs:['The pointer stopped here!','The wheel has spoken','Fate spun this answer','This is the one today','No more doubt, go with it!','The wheel says: this!','Lady Luck spun to this','Trust the spin']
   }
 };
 
@@ -91,7 +101,8 @@ function applyI18n(){
   // Update tabs and go button
   $('#tab-dice').textContent=t('dice_tab');
   $('#tab-coin').textContent=t('coin_tab');
-  $('#btn-roll').textContent=t(mode==='coin'?'coin_btn':'roll_btn');
+  $('#tab-wheel').textContent=t('wheel_tab');
+  $('#btn-roll').textContent=t(mode==='coin'?'coin_btn':mode==='wheel'?'wheel_btn':'roll_btn');
 }
 function applyTheme(){document.documentElement.setAttribute('data-theme',theme);}
 
@@ -144,6 +155,7 @@ function doAction(){
   const opts=getOptions();
   if(opts.length<2){showToast(t('min_options'));return;}
   if(mode==='coin')doCoinFlip(opts);
+  else if(mode==='wheel')doWheelSpin(opts);
   else doRoll(opts);
 }
 
@@ -180,8 +192,18 @@ function buildStage(opts){
       </div>`;
     coin.style.transform='rotateX('+(Math.random()*360)+'deg)';
     st.appendChild(coin);
-  }else{
+  }else if(mode==='wheel'){
     st.classList.remove('coin-stage');
+    st.classList.add('wheel-stage');
+    const wrap=document.createElement('div');wrap.className='wheel-wrap';
+    wrap.innerHTML=`
+      <div class="wheel-outer"></div>
+      <div class="wheel-pointer"></div>
+      <canvas class="wheel-canvas" id="wheel-canvas" width="360" height="360"></canvas>`;
+    st.appendChild(wrap);
+    drawWheel($('#wheel-canvas'),opts);
+  }else{
+    st.classList.remove('coin-stage','wheel-stage');
   opts.forEach(o=>{
     const u=document.createElement('div');u.className='dice-unit';
     const dc=createDice();
@@ -236,6 +258,156 @@ function animateCoin(opts,wi){
       coin.style.transition='none';
       requestAnimationFrame(tick);
     }
+  }
+  requestAnimationFrame(tick);
+}
+
+// ── Wheel Spin ──
+const WHEEL_COLORS=[
+  {main:'#E88BA8',light:'#F5CDD8',dark:'#D46A8A'},
+  {main:'#6BAFE0',light:'#A8D4F5',dark:'#4A8EC8'},
+  {main:'#7BC89E',light:'#B2E4CC',dark:'#5AA87A'},
+  {main:'#E8BA7A',light:'#F2D8AD',dark:'#D49A50'},
+  {main:'#C99AE8',light:'#E0CAFA',dark:'#B078D6'},
+  {main:'#D4C96A',light:'#EDE4A5',dark:'#BEB04E'},
+  {main:'#7AB0DD',light:'#B0D0F0',dark:'#5890BF'},
+  {main:'#F4A5A5',light:'#FACACA',dark:'#E07878'}
+];
+
+function drawWheel(canvas,opts){
+  if(!canvas)return;
+  const dpr=window.devicePixelRatio||1;
+  const cssSize=200,pxSize=Math.round(cssSize*dpr);
+  const cx=pxSize/2,cy=pxSize/2,r=(pxSize/2)-8;
+
+  // Set actual canvas size for crisp rendering
+  if(canvas.width!==pxSize||canvas.height!==pxSize){
+    canvas.width=pxSize;canvas.height=pxSize;
+    canvas.style.width=cssSize+'px';canvas.style.height=cssSize+'px';
+  }
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,pxSize,pxSize);
+
+  const N=opts.length,seg=2*Math.PI/N;
+  // Adaptive text radius: fewer segments → smaller radius to avoid edge clipping
+  const textR=r*(N<=3?0.52:N<=5?0.58:0.63);
+  const fontSize=N<=3?Math.round(22*dpr):N<=5?Math.round(19*dpr):Math.round(16*dpr);
+
+  opts.forEach((o,i)=>{
+    const start=-Math.PI/2+i*seg,end=start+seg,mid=start+seg/2;
+    const col=WHEEL_COLORS[i%WHEEL_COLORS.length];
+
+    // ── Segment gradient fill (radial for depth) ──
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,end);ctx.closePath();
+    const sg=ctx.createRadialGradient(cx,cy,r*0.15,cx,cy,r);
+    sg.addColorStop(0,col.light);sg.addColorStop(0.55,col.main);sg.addColorStop(1,col.dark);
+    ctx.fillStyle=sg;ctx.fill();
+
+    // Separator line (subtle inner highlight)
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+r*Math.cos(start),cy+r*Math.sin(start));
+    ctx.strokeStyle='rgba(255,255,255,.45)';ctx.lineWidth=Math.max(2,dpr*1.8);ctx.stroke();
+    ctx.strokeStyle='rgba(0,0,0,.08)';ctx.lineWidth=Math.max(1,dpr*0.8);ctx.stroke();
+
+    // ── Text label ──
+    ctx.save();
+    ctx.translate(cx+textR*Math.cos(mid),cy+textR*Math.sin(mid));
+    ctx.rotate(mid+Math.PI/2);
+
+    const label=o.length>6?o.slice(0,6)+'..':o;
+    ctx.font=`bold ${fontSize}px -apple-system,"Segoe UI",sans-serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    // Strong shadow for readability on any color
+    ctx.shadowColor='rgba(0,0,0,.38)';
+    ctx.shadowBlur=Math.round(dpr*5);
+    ctx.shadowOffsetX=0;ctx.shadowOffsetY=Math.round(dpr*1);
+    ctx.fillStyle='#fff';
+    ctx.fillText(label,0,0);
+
+    // Subtle stroke outline for extra clarity
+    ctx.shadowColor='transparent';ctx.shadowBlur=0;
+    ctx.strokeStyle='rgba(0,0,0,.18)';
+    ctx.lineWidth=Math.round(dpr*0.8);
+    ctx.strokeText(label,0,0);
+    ctx.restore();
+  });
+
+  // ── Center hub (premium metallic) ──
+  const hubR=Math.round(pxSize*0.09);
+  ctx.beginPath();ctx.arc(cx,cy,hubR,0,2*Math.PI);
+  const hg=ctx.createRadialGradient(cx-hubR*.25,cy-hubR*.25,2,cx,cy,hubR);
+  hg.addColorStop(0,'#fff');hg.addColorStop(0.45,'#F4F0FA');
+  hg.addColorStop(0.82,'#DDD6EA');hg.addColorStop(1,'#C8BFD8');
+  ctx.fillStyle=hg;ctx.fill();
+
+  // Hub inner ring
+  ctx.beginPath();ctx.arc(cx,cy,hubR,0,2*Math.PI);
+  ctx.strokeStyle='rgba(255,255,255,.55)';ctx.lineWidth=Math.round(dpr*2);ctx.stroke();
+  // Hub outer ring (thin accent)
+  ctx.beginPath();ctx.arc(cx,cy,hubR+Math.round(dpr*3),0,2*Math.PI);
+  ctx.strokeStyle='rgba(124,111,190,.22)';ctx.lineWidth=Math.round(dpr*1.5);ctx.stroke();
+
+  // Hub center dot (subtle glow)
+  ctx.beginPath();ctx.arc(cx,cy,hubR*0.35,0,2*Math.PI);
+  ctx.fillStyle='rgba(124,111,190,.15)';ctx.fill();
+
+  // ── Outer decorative ring ──
+  ctx.beginPath();ctx.arc(cx,cy,r+Math.round(dpr*4),0,2*Math.PI);
+  ctx.strokeStyle='rgba(124,111,190,.14)';ctx.lineWidth=Math.round(dpr*2.5);ctx.stroke();
+
+  // Tick marks around outer ring
+  const tickCount=N*4;
+  for(let t=0;t<tickCount;t++){
+    const ang=-Math.PI/2+(t/tickCount)*2*Math.PI;
+    const isMajor=t%N===0;
+    const tInner=r+Math.round(dpr*(isMajor?5:7));
+    const tOuter=r+Math.round(dpr*(isMajor?11:9));
+    ctx.beginPath();
+    ctx.moveTo(cx+tInner*Math.cos(ang),cy+tInner*Math.sin(ang));
+    ctx.lineTo(cx+tOuter*Math.cos(ang),cy+tOuter*Math.sin(ang));
+    ctx.strokeStyle=isMajor?'rgba(124,111,190,.35)':'rgba(124,111,190,.18)';
+    ctx.lineWidth=Math.round(dpr*(isMajor?1.8:1));ctx.stroke();
+  }
+
+  // Thin outer border
+  ctx.beginPath();ctx.arc(cx,cy,r,0,2*Math.PI);
+  ctx.strokeStyle='rgba(255,255,255,.28)';ctx.lineWidth=Math.round(dpr*2.5);ctx.stroke();
+}
+
+function doWheelSpin(opts){
+  isRolling=true;
+  $('#btn-roll').classList.add('rolling');
+  const wi=Math.floor(Math.random()*opts.length);
+  $('#input-section').classList.add('hidden');
+  $('#result-section').classList.add('hidden');
+  $('#battle-section').classList.remove('hidden');
+  $('#footer-lucky').classList.add('hidden');
+  $('#battle-section .battle-tip').textContent=t('wheel_spinning');
+  buildStage(opts);
+  animateWheel(opts,wi);
+}
+
+function animateWheel(opts,wi){
+  const canvas=$('#wheel-canvas'),DUR=2800;
+  const N=opts.length,segDeg=360/N;
+  const targetAngle=wi*segDeg+segDeg/2;
+  const offset=(Math.random()*0.8-0.4)*segDeg;
+  const finalAngle=targetAngle+offset;
+  const fullSpins=(5+Math.floor(Math.random()*3))*360;
+  const totalRot=fullSpins+finalAngle;
+
+  // CSS transition for ultra-smooth spin
+  canvas.style.transition='none';
+  canvas.style.transform='rotate(0deg)';
+  canvas.offsetHeight;
+  canvas.style.transition='transform '+DUR+'ms cubic-bezier(.12,.65,.25,1)';
+  canvas.style.transform='rotate('+totalRot+'deg)';
+
+  const t0=performance.now();
+  function tick(now){
+    const p=Math.min((now-t0)/DUR,1);
+    $('#progress-bar').style.width=(p*100)+'%';
+    if(p<1)requestAnimationFrame(tick);
+    else setTimeout(()=>showResult(opts,[],wi),400);
   }
   requestAnimationFrame(tick);
 }
@@ -298,12 +470,18 @@ function showResult(opts,rolls,wi){
   $('#btn-roll').classList.remove('rolling');
 
   const isCoin=mode==='coin';
-  const msgs=I18N[lang][isCoin?'coin_result_msgs':'result_msgs'];
+  const isWheel=mode==='wheel';
+  let msgKey;
+  if(isCoin)msgKey=wi===0?'coin_result_heads':'coin_result_tails';
+  else if(isWheel)msgKey='wheel_result_msgs';
+  else msgKey='result_msgs';
+  const msgs=I18N[lang][msgKey];
   $('#result-winner').textContent=opts[wi];
   $('#result-msg').textContent=msgs[Math.floor(Math.random()*msgs.length)];
 
-  // Toggle coin mode class on result section
+  // Hide generic winner-card & dice-visual for coin/wheel modes
   $('#result-section').classList.toggle('coin-mode',isCoin);
+  $('#result-section').classList.toggle('wheel-mode',isWheel);
 
   const dv=$('#result-dice-visual');dv.innerHTML='';
 
@@ -324,6 +502,8 @@ function showResult(opts,rolls,wi){
           <span class="cr-side-text">${sideText}</span>
         </div>
       </div>`;
+  }else if(mode==='wheel'){
+    dv.innerHTML=`<div class="wr-wrap"><div class="wr-name">${opts[wi]}</div></div>`;
   }else{
   opts.forEach((o,i)=>{
     const unit=document.createElement('div');
@@ -388,9 +568,12 @@ function renderH(){
   history.forEach((rec,i)=>{
     const el=document.createElement('div');el.className='hi';el.style.cursor='pointer';
     const isCoinEntry=rec.type==='coin';
-    const histIcon=isCoinEntry?'🪙':'🎲';
+    const isWheelEntry=rec.type==='wheel';
+    const histIcon=isCoinEntry?'🪙':isWheelEntry?'🎡':'🎲';
     const detailLine=isCoinEntry
       ?`${rec.options[rec.winnerIdx]} (${rec.winnerIdx===0?t('coin_heads'):t('coin_tails')})`
+      :isWheelEntry
+      ?rec.options.join(' · ')
       :rec.options.map((o,j)=>ic[rec.totals[j]]+o).join('　');
     el.innerHTML=`<div class="hw">${histIcon} ${rec.options[rec.winnerIdx]}</div><div class="ho">${detailLine}</div><div class="hm"><span>${new Date(rec.createdAt).toLocaleDateString().slice(5)} ${new Date(rec.createdAt).toTimeString().slice(0,5)}</span><button class="hd-b" data-i="${i}">🗑</button></div>`;
     el.addEventListener('click',()=>{
@@ -408,6 +591,7 @@ function renderH(){
       $('#input-section').classList.remove('hidden');
       $('#footer-lucky').classList.remove('hidden');
       if(isCoinEntry&&mode!=='coin')switchMode('coin');
+      if(isWheelEntry&&mode!=='wheel')switchMode('wheel');
       doAction();
     });
     l.appendChild(el);
@@ -421,8 +605,11 @@ function exportAsImage(){
   const winnerName=$('#result-winner').textContent;
   const msg=$('#result-msg').textContent;
   const isCoinExport=mode==='coin';
+  const isWheelExport=mode==='wheel';
   const diceData=isCoinExport
     ?[t('coin_heads'),t('coin_tails')]
+    :isWheelExport
+    ?Array.from($$('#result-dice-visual .wr-info')).map(()=>'')
     :Array.from($$('#result-dice-visual .dv-unit')).map(u=>{
       const n=u.querySelector('.dv-num').textContent;
       const lb=u.querySelector('.dv-label').textContent;
@@ -473,7 +660,8 @@ function exportAsImage(){
 
   ctx.font='12px sans-serif';ctx.fillStyle=subColor;
   ctx.textAlign='center';
-  ctx.fillText(isCoinExport?('🪙 '+diceData[0]+' / '+diceData[1]):diceData.join('  VS  '),W/2,H/2+24);
+  const midText=isCoinExport?('🪙 '+diceData[0]+' / '+diceData[1]):isWheelExport?'🎡 '+t('wheel_tab'):diceData.join('  VS  ');
+  ctx.fillText(midText,W/2,H/2+24);
 
   ctx.font='italic 12px sans-serif';ctx.fillStyle=subColor;
   ctx.fillText(msg,W/2,H/2+50);
@@ -546,7 +734,8 @@ function switchMode(m){
   // Coin mode: trim to 2 options
   if(isCoin&&optionCount>2){while(optionCount>2){$$('.row')[2].remove();optionCount--;}reindex();}
   // Update go button
-  $('#btn-roll').textContent=t(isCoin?'coin_btn':'roll_btn');
+  const btnKey=mode==='coin'?'coin_btn':mode==='wheel'?'wheel_btn':'roll_btn';
+  $('#btn-roll').textContent=t(btnKey);
   // Reset UI
   $('#battle-section').classList.add('hidden');
   $('#result-section').classList.add('hidden');
@@ -565,11 +754,14 @@ function init(){
     // Mode tabs
     $$('.mt-btn').forEach(b=>{b.classList.toggle('active',b.dataset.mode===mode);});
     const isCoinInit=mode==='coin';
+    const isWheelInit=mode==='wheel';
     $('#btn-add-option').classList.toggle('hidden',isCoinInit);
     if(isCoinInit&&optionCount>2){while(optionCount>2){$$('.row')[2].remove();optionCount--;}reindex();}
-    $('#btn-roll').textContent=t(isCoinInit?'coin_btn':'roll_btn');
+    const btnInitKey=isCoinInit?'coin_btn':isWheelInit?'wheel_btn':'roll_btn';
+    $('#btn-roll').textContent=t(btnInitKey);
     $('#tab-dice').onclick=()=>switchMode('dice');
     $('#tab-coin').onclick=()=>switchMode('coin');
+    $('#tab-wheel').onclick=()=>switchMode('wheel');
 
     $$('#set-rule .seg-btn').forEach(btn=>{
       btn.onclick=()=>{
