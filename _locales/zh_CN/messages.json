@@ -1,10 +1,10 @@
 {
   "extension_name": {
-    "message": "别纠结了 / Don't Hesitate",
+    "message": "LuckyPick - 骰子决策器",
     "description": "Extension name"
   },
   "extension_description": {
-    "message": "选择困难？掷骰子帮你决定 · Decision dice helper",
+    "message": "选择困难？让 3D 骰子帮你轻松决定。",
     "description": "Extension description"
   }
 }

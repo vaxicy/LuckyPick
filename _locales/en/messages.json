@@ -1,10 +1,10 @@
 {
   "extension_name": {
-    "message": "Lucky Picker",
+    "message": "LuckyPick - Dice Decision Helper",
     "description": "Extension name"
   },
   "extension_description": {
-    "message": "Can't decide? Roll the dice · 选择困难？掷骰子帮你决定",
+    "message": "Can't decide? Let a tiny 3D dice roll choose for you.",
     "description": "Extension description"
   }
 }

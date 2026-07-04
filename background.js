@@ -1,20 +1,20 @@
 chrome.runtime.onInstalled.addListener(function () {
-  chrome.storage.local.get(['settings', 'history', 'savedSets', 'dailyLuck'], function (data) {
+  chrome.storage.local.get(['luckypick_settings', 'luckypick_history', 'luckypick_state'], function (data) {
     var settings = Object.assign({
-      language: 'zh',
+      lang: 'zh',
       theme: 'light',
-      defaultRule: 'high',
-      animationEnabled: true,
-      historyLimit: 30
-    }, data.settings || {});
+      rule: 'high',
+      incognito: false,
+      animSpeed: 'normal'
+    }, data.luckypick_settings || {});
 
-    if (settings.defaultRule !== 'low') settings.defaultRule = 'high';
+    settings.rule = 'high';
+    if (['fast', 'normal', 'slow'].indexOf(settings.animSpeed) === -1) settings.animSpeed = 'normal';
 
     chrome.storage.local.set({
-      settings: settings,
-      history: Array.isArray(data.history) ? data.history : [],
-      savedSets: Array.isArray(data.savedSets) ? data.savedSets : [],
-      dailyLuck: data.dailyLuck || null
+      luckypick_settings: settings,
+      luckypick_history: Array.isArray(data.luckypick_history) ? data.luckypick_history : [],
+      luckypick_state: data.luckypick_state || null
     });
   });
 });

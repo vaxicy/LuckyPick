@@ -7,138 +7,113 @@
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-
-  <!-- Header -->
-  <header class="hd">
-    <div class="hd-left"><span class="logo">🎲</span><span class="app-name" id="app-name">LuckyPick</span></div>
-    <div class="hd-right">
-      <button class="ib" id="btn-history" data-i18n-title="history_tip" title="历史">📋</button>
-      <button class="ib" id="btn-settings" data-i18n-title="settings_tip" title="设置">⚙️</button>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-dice">&#127922;</span>
+      <span id="app-name">LuckyPick</span>
+    </div>
+    <div class="top-actions">
+      <button id="btn-history" class="icon-btn" type="button" data-i18n-title="history_tip" title="History">&#128203;</button>
+      <button id="btn-settings" class="icon-btn" type="button" data-i18n-title="settings_tip" title="Settings">&#9881;</button>
     </div>
   </header>
 
-  <!-- Mode Tabs -->
-  <div class="mode-tabs">
-    <button class="mt-btn active" data-mode="dice" id="tab-dice">🎲 摇骰子</button>
-    <button class="mt-btn" data-mode="coin" id="tab-coin">🪙 抛硬币</button>
-    <button class="mt-btn" data-mode="wheel" id="tab-wheel">🎡 转盘</button>
-    <button class="mt-btn" data-mode="number" id="tab-number">🎴 幸运数字</button>
-  </div>
-
   <main class="main">
-
-    <!-- 输入区 -->
-    <section id="input-section">
-      <!-- Options input (dice/coin/wheel) -->
-      <div id="options-wrap">
-        <div class="opt-list" id="options-list">
-          <div class="row"><span class="badge" style="background:#E88BA8">A</span><input class="inp" data-i18n-placeholder="opt_placeholder_a" placeholder="选项 A..." autofocus><button class="del">×</button></div>
-          <div class="row"><span class="badge" style="background:#6BAFE0">B</span><input class="inp" data-i18n-placeholder="opt_placeholder_b" placeholder="选项 B..."><button class="del">×</button></div>
+    <section id="input-section" class="input-section">
+      <section class="options-box">
+        <div id="options-list" class="options-list">
+          <div class="option-row">
+            <span class="badge">A</span>
+            <input class="option-input" data-i18n-placeholder="opt_placeholder_a" placeholder="Option A..." autofocus>
+            <button class="delete-btn" type="button">&times;</button>
+          </div>
+          <div class="option-row">
+            <span class="badge">B</span>
+            <input class="option-input" data-i18n-placeholder="opt_placeholder_b" placeholder="Option B...">
+            <button class="delete-btn" type="button">&times;</button>
+          </div>
         </div>
-        <button class="add-btn" id="btn-add-option" data-i18n="add_option">＋ 添加选项</button>
-      </div>
+        <button id="btn-add-option" class="add-btn" type="button" data-i18n="add_option">+ Add option</button>
+      </section>
 
-      <!-- Number range input (number mode) -->
-      <div id="number-wrap" class="hidden">
-        <div class="num-range-row">
-          <span class="num-label" data-i18n="num_from">从</span>
-          <input type="number" class="num-inp" id="num-min" value="1" min="1" max="9999">
-          <span class="num-label" data-i18n="num_to">到</span>
-          <input type="number" class="num-inp" id="num-max" value="10" min="1" max="9999">
-        </div>
-      </div>
-
-      <button class="go-btn" id="btn-roll" data-i18n="roll_btn">🎲 掷骰对决</button>
+      <button id="btn-roll" class="roll-btn" type="button" data-i18n="roll_btn">&#127922; Roll dice</button>
     </section>
 
-    <!-- 动画区 -->
-    <section class="battle hidden" id="battle-section">
-      <div class="battle-tip" data-i18n="battle_title">掷骰中...</div>
-      <div class="stage" id="dice-stage"></div>
-      <div class="bar-track"><div class="bar-fill" id="progress-bar"></div></div>
+    <section id="battle-section" class="battle-section hidden">
+      <div class="battle-title" data-i18n="battle_title">Rolling...</div>
+      <div id="dice-stage" class="dice-stage"></div>
+      <div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div>
     </section>
 
-    <!-- 结果区 -->
-    <section class="result hidden" id="result-section">
-      <div class="confetti-wrap" id="confetti-container"></div>
-      <div class="winner-card">
-        <div class="wlbl" data-i18n="winner_label">获胜者</div>
-        <div class="wname" id="result-winner"></div>
+    <section id="result-section" class="result-section hidden">
+      <div id="confetti-container" class="confetti-container"></div>
+      <div class="result-card">
+        <div class="result-kicker" data-i18n="winner_label">Result</div>
+        <div id="result-winner" class="result-winner"></div>
+        <div id="result-msg" class="result-msg"></div>
       </div>
-      <div class="dice-visual" id="result-dice-visual"></div>
-      <div class="wmsg" id="result-msg"></div>
-      <div class="acts">
-        <button class="ab ab-main" id="btn-again" data-i18n="again">再来一局</button>
-        <button class="ab" id="btn-copy-text" data-i18n="copy_text_btn">📋 复制</button>
-        <button class="ab" id="btn-export" data-i18n="export_btn">📸 导出</button>
+      <div id="result-dice-visual" class="result-dice-visual"></div>
+      <div class="result-actions">
+        <button id="btn-again" class="action-btn primary" type="button" data-i18n="again">Again</button>
+        <button id="btn-export" class="action-btn" type="button" data-i18n="export_btn">Export image</button>
       </div>
     </section>
-
   </main>
 
-  <!-- 底部幸运 -->
-  <footer class="ft" id="footer-lucky">
-    <div class="lucky-card">
-      <span class="lucky-icon">🍀</span>
-      <span class="lucky-tip" id="lucky-tip"></span>
-    </div>
-  </footer>
+  <div id="panel-overlay" class="overlay hidden"></div>
 
-  <!-- 确认弹窗 -->
-  <div class="confirm-overlay hidden" id="confirm-overlay"></div>
-  <div class="confirm-dialog hidden" id="confirm-dialog">
-    <div class="confirm-icon">⚠️</div>
-    <div class="confirm-msg" id="confirm-msg"></div>
+  <aside id="history-panel" class="panel hidden">
+    <div class="panel-head">
+      <h2 data-i18n="history_title">History</h2>
+      <button id="btn-close-history" class="close-btn" type="button">&times;</button>
+    </div>
+    <div id="history-list" class="panel-body"></div>
+    <div class="panel-foot">
+      <button id="btn-clear-history" class="text-btn" type="button" data-i18n="clear_history">Clear history</button>
+    </div>
+  </aside>
+
+  <aside id="settings-panel" class="panel hidden">
+    <div class="panel-head">
+      <h2 data-i18n="settings_title">Settings</h2>
+      <button id="btn-close-settings" class="close-btn" type="button">&times;</button>
+    </div>
+    <div class="panel-body settings-body">
+      <div class="setting-row">
+        <span data-i18n="language">Language</span>
+        <div id="set-lang" class="segmented small">
+          <button class="seg-btn active" type="button" data-value="zh">&#20013;&#25991;</button>
+          <button class="seg-btn" type="button" data-value="en">EN</button>
+        </div>
+      </div>
+      <div class="setting-row">
+        <span data-i18n="theme_label">Dark mode</span>
+        <button id="set-theme" class="toggle" type="button" aria-label="Theme"></button>
+      </div>
+      <div class="setting-row">
+        <span data-i18n="incognito_label">Incognito</span>
+        <button id="set-incognito" class="toggle" type="button" aria-label="Incognito"></button>
+      </div>
+      <div class="setting-row">
+        <span data-i18n="animation_speed">Animation</span>
+        <div id="set-speed" class="segmented small">
+          <button class="seg-btn active" type="button" data-value="normal" data-i18n="speed_normal">Normal</button>
+          <button class="seg-btn" type="button" data-value="fast" data-i18n="speed_fast">Fast</button>
+          <button class="seg-btn" type="button" data-value="slow" data-i18n="speed_slow">Slow</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div id="confirm-overlay" class="overlay hidden"></div>
+  <div id="confirm-dialog" class="confirm-dialog hidden">
+    <div class="confirm-icon">!</div>
+    <div id="confirm-msg" class="confirm-msg"></div>
     <div class="confirm-actions">
-      <button class="confirm-btn confirm-cancel" id="confirm-cancel" data-i18n="confirm_cancel">取消</button>
-      <button class="confirm-btn confirm-ok" id="confirm-ok" data-i18n="confirm_ok">确定</button>
+      <button id="confirm-cancel" class="confirm-btn" type="button" data-i18n="confirm_cancel">Cancel</button>
+      <button id="confirm-ok" class="confirm-btn ok" type="button" data-i18n="confirm_ok">OK</button>
     </div>
   </div>
-
-  <!-- 历史面板 -->
-  <div class="ov hidden" id="panel-overlay"></div>
-  <aside class="panel hidden" id="history-panel">
-    <div class="ph"><h2 data-i18n="history_title">📋 历史记录</h2><button class="cb" id="btn-close-panel">✕</button></div>
-    <div class="pb" id="history-list"><div class="pe" data-i18n="history_empty">暂无记录</div></div>
-    <div class="pf"><button class="clrb" id="btn-clear-history" data-i18n="clear_history">清空历史</button></div>
-  </aside>
-
-  <!-- 设置面板 -->
-  <aside class="panel hidden" id="settings-panel">
-    <div class="ph"><h2 data-i18n="settings_title">⚙️ 设置</h2><button class="cb" id="btn-close-settings">✕</button></div>
-    <div class="pb spb">
-      <div class="sg">
-        <span class="sgi">🌐</span><span class="sgl" data-i18n="language">语言 / Language</span>
-        <div class="seg" id="set-lang">
-          <button class="seg-btn active" data-v="zh">中文</button>
-          <button class="seg-btn" data-v="en">English</button>
-        </div>
-      </div>
-      <div class="sg">
-        <span class="sgi">🎨</span><span class="sgl" data-i18n="theme_label">深色模式</span>
-        <div class="tgl" id="set-theme"></div>
-      </div>
-      <div class="sg">
-        <span class="sgi">🕶️</span><span class="sgl" data-i18n="incognito_label">无痕模式</span>
-        <div class="tgl" id="set-incognito"></div>
-      </div>
-      <div class="sg">
-        <span class="sgi">🏆</span><span class="sgl" data-i18n="rule_label">默认规则</span>
-        <div class="seg" id="set-rule">
-          <button class="seg-btn active" data-v="high" data-i18n="rule_high">大者胜</button>
-          <button class="seg-btn" data-v="low" data-i18n="rule_low">小者胜</button>
-        </div>
-      </div>
-      <div class="sg">
-        <span class="sgi">⚡</span><span class="sgl" data-i18n="anim_speed_label">动画速度</span>
-        <div class="seg set-speed">
-          <button class="seg-btn active" data-v="normal" data-i18n="anim_speed_normal">正常</button>
-          <button class="seg-btn" data-v="fast" data-i18n="anim_speed_fast">快速</button>
-          <button class="seg-btn" data-v="slow" data-i18n="anim_speed_slow">慢速</button>
-        </div>
-      </div>
-    </div>
-  </aside>
 
   <script src="popup.js"></script>
 </body>
