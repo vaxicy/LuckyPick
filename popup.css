@@ -321,7 +321,7 @@ button {
 
 .battle-section {
   text-align: center;
-  padding: 0 0 7px;
+  padding: 0 0 2px;
 }
 
 .battle-title {
@@ -329,7 +329,7 @@ button {
   align-items: center;
   justify-content: center;
   min-height: 28px;
-  margin-bottom: 9px;
+  margin-bottom: 4px;
   padding: 5px 14px;
   border: 1px solid var(--border);
   border-radius: var(--pill);
@@ -351,10 +351,10 @@ button {
 
 .coin-stage,
 .wheel-stage {
-  min-height: 126px;
+  min-height: 90px;
   display: grid;
   place-items: center;
-  padding: 3px 0 8px;
+  padding: 2px 0 4px;
   perspective: 800px;
 }
 
@@ -892,7 +892,7 @@ button {
 }
 
 .confirm-icon {
-  margin-bottom: 9px;
+  margin-bottom: 4px;
   color: var(--accent-2);
   font-size: 24px;
 }
