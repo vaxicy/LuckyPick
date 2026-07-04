@@ -100,7 +100,7 @@ const I18N={
 };
 
 // State
-let lang='zh',theme='light',rule='high',incognito=false,isRolling=false,mode='dice',_restoring=false;
+let lang='zh',theme='light',rule='high',incognito=false,isRolling=false,mode='dice',_restoring=false,_pendingClearResult=false;
 let history=[],optionCount=2;
 
 // ── State Persistence ──
@@ -115,8 +115,18 @@ function getState(){
   };
 }
 function saveState(){
-  const st=getState();
-  chrome.storage.local.set({luckypick_state:st});
+  const fresh=getState();
+  chrome.storage.local.get(['luckypick_state'],res=>{
+    const prev=res.luckypick_state||{};
+    // If user cleared result, don't restore lastResult from storage
+    if(_pendingClearResult){
+      fresh.lastResult=null;
+      _pendingClearResult=false;
+    }else if(prev.lastResult){
+      fresh.lastResult=prev.lastResult;
+    }
+    chrome.storage.local.set({luckypick_state:fresh});
+  });
 }
 function saveResultState(opts,rolls,wi,range){
   if(_restoring)return;
@@ -131,6 +141,8 @@ function saveResultState(opts,rolls,wi,range){
   });
 }
 function clearResultState(){
+  _pendingClearResult=true;
+  // Also clear from storage immediately
   chrome.storage.local.get(['luckypick_state'],res=>{
     if(!res.luckypick_state)return;
     res.luckypick_state.lastResult=null;
@@ -1057,7 +1069,7 @@ function init(){
       $('#footer-lucky').classList.remove('hidden');
       $$('.dice-unit').forEach(u=>u.classList.remove('winner','loser'));
       clearResultState();
-      saveState();
+      // Don't call saveState() here — visibilitychange will save the clean state
     };
     $('#btn-export').onclick=exportAsImage;
 
