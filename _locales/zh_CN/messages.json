@@ -1,10 +1,10 @@
 {
   "extension_name": {
-    "message": "LuckyPick - 骰子决策器",
+    "message": "Lucky Pick - 选择困难症小帮手",
     "description": "Extension name"
   },
   "extension_description": {
-    "message": "选择困难？让 3D 骰子帮你轻松决定。",
+    "message": "还在纠结吃啥、去哪、选哪个？让 Lucky Pick 帮你随机选择，告别选择困难症！支持掷骰子、抛硬币、幸运转盘多种模式。",
     "description": "Extension description"
   }
 }

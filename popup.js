@@ -488,8 +488,25 @@
     stage.className = 'coin-stage';
     stage.innerHTML = `
       <div class="coin3d" id="coin3d">
-        <div class="coin-face head" aria-hidden="true"></div>
-        <div class="coin-face tail" aria-hidden="true"></div>
+        <div class="coin-face head" aria-hidden="true">
+          <svg class="coin-svg" viewBox="0 0 64 64">
+            <defs>
+              <filter id="starShadow" x="-15%" y="-15%" width="130%" height="130%">
+                <feDropShadow dx="0" dy="1.2" stdDeviation="1.2" flood-color="rgba(0,0,0,.28)"/>
+              </filter>
+            </defs>
+            <circle cx="32" cy="32" r="27" fill="none" stroke="rgba(180,130,0,.30)" stroke-width="1.2"/>
+            <polygon points="32,15 35,24 45,24 37,30 40,40 32,34 24,40 27,30 19,24 29,24"
+                     fill="#daa20a" filter="url(#starShadow)"/>
+            <polygon points="32,15 35,24 45,24 37,30 40,40 32,34 24,40 27,30 19,24 29,24"
+                     fill="rgba(255,255,200,.16)" style="mix-blend-mode:soft-light"/>
+          </svg>
+        </div>
+        <div class="coin-face tail" aria-hidden="true">
+          <svg class="coin-svg" viewBox="0 0 64 64">
+            <circle cx="32" cy="32" r="24" fill="none" stroke="rgba(120,120,140,.22)" stroke-width="1"/>
+          </svg>
+        </div>
       </div>
     `;
   }
@@ -925,13 +942,11 @@
 
   function wheelGradient(count) {
     const step = 360 / count;
-    const gap = Math.min(1, step * 0.08);
     const parts = [];
     for (let i = 0; i < count; i += 1) {
       const start = i * step;
       const end = (i + 1) * step;
-      parts.push(`${wheelColor(i)} ${start}deg ${end - gap}deg`);
-      parts.push(`rgba(255,255,255,.72) ${end - gap}deg ${end}deg`);
+      parts.push(`${wheelColor(i)} ${start}deg ${end}deg`);
     }
     return `conic-gradient(from 0deg, ${parts.join(', ')})`;
   }
