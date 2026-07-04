@@ -100,7 +100,6 @@
 
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => Array.from(document.querySelectorAll(selector));
-  const has = (selector) => Boolean($(selector));
 
   const FACE_NUM = { front: 1, back: 6, right: 3, left: 4, top: 2, bottom: 5 };
   const NUM_ROT = {
