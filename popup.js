@@ -606,7 +606,6 @@
     document.body.classList.add('result-mode');
 
     setText('#result-winner', result.isTie ? t('tie_title') : result.winner);
-    setText('#result-msg', result.isTie ? t('tie_msg') : randomItem(t(`result_msgs_${result.mode || 'dice'}`)));
 
     const visual = $('#result-dice-visual');
     if (!visual) return;
