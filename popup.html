@@ -69,6 +69,7 @@
       <div class="wmsg" id="result-msg"></div>
       <div class="acts">
         <button class="ab ab-main" id="btn-again" data-i18n="again">再来一局</button>
+        <button class="ab" id="btn-copy-text" data-i18n="copy_text_btn">📋 复制</button>
         <button class="ab" id="btn-export" data-i18n="export_btn">📸 导出</button>
       </div>
     </section>
@@ -82,6 +83,17 @@
       <span class="lucky-tip" id="lucky-tip"></span>
     </div>
   </footer>
+
+  <!-- 确认弹窗 -->
+  <div class="confirm-overlay hidden" id="confirm-overlay"></div>
+  <div class="confirm-dialog hidden" id="confirm-dialog">
+    <div class="confirm-icon">⚠️</div>
+    <div class="confirm-msg" id="confirm-msg"></div>
+    <div class="confirm-actions">
+      <button class="confirm-btn confirm-cancel" id="confirm-cancel" data-i18n="confirm_cancel">取消</button>
+      <button class="confirm-btn confirm-ok" id="confirm-ok" data-i18n="confirm_ok">确定</button>
+    </div>
+  </div>
 
   <!-- 历史面板 -->
   <div class="ov hidden" id="panel-overlay"></div>
@@ -115,6 +127,14 @@
         <div class="seg" id="set-rule">
           <button class="seg-btn active" data-v="high" data-i18n="rule_high">大者胜</button>
           <button class="seg-btn" data-v="low" data-i18n="rule_low">小者胜</button>
+        </div>
+      </div>
+      <div class="sg">
+        <span class="sgi">⚡</span><span class="sgl" data-i18n="anim_speed_label">动画速度</span>
+        <div class="seg set-speed">
+          <button class="seg-btn active" data-v="normal" data-i18n="anim_speed_normal">正常</button>
+          <button class="seg-btn" data-v="fast" data-i18n="anim_speed_fast">快速</button>
+          <button class="seg-btn" data-v="slow" data-i18n="anim_speed_slow">慢速</button>
         </div>
       </div>
     </div>

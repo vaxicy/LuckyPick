@@ -48,7 +48,15 @@ const I18N={
     num_from:'从',
     num_to:'到',
     number_invalid:'请设置有效的数字范围',
-    number_result_msgs:['你的幸运数字诞生了！','命运掷出了这个数字！','今天的幸运数字就是它','相信这个数字吧！','数字已揭晓，别犹豫','这就是属于你的数字','魔法卡牌选中了它','幸运之数，收下吧！']
+    number_result_msgs:['你的幸运数字诞生了！','命运掷出了这个数字！','今天的幸运数字就是它','相信这个数字吧！','数字已揭晓，别犹豫','这就是属于你的数字','魔法卡牌选中了它','幸运之数，收下吧！'],
+    copy_text_btn:'📋 复制',
+    copy_success:'已复制到剪贴板 ✨',
+    anim_speed_label:'动画速度',
+    anim_speed_normal:'正常',
+    anim_speed_fast:'快速',
+    anim_speed_slow:'慢速',
+    confirm_cancel:'取消',
+    confirm_ok:'确定'
   },
   en:{
     app_name:'Lucky Picker',
@@ -95,12 +103,20 @@ const I18N={
     num_from:'From',
     num_to:'To',
     number_invalid:'Please set a valid range',
-    number_result_msgs:['Your lucky number is born!','Fate drew this number!','This is your lucky number','Trust this number!','The card has spoken!','This number belongs to you','The magic card chose it','Take it — your lucky number!']
+    number_result_msgs:['Your lucky number is born!','Fate drew this number!','This is your lucky number','Trust this number!','The card has spoken!','This number belongs to you','The magic card chose it','Take it — your lucky number!'],
+    copy_text_btn:'📋 Copy',
+    copy_success:'Copied to clipboard ✨',
+    anim_speed_label:'Animation Speed',
+    anim_speed_normal:'Normal',
+    anim_speed_fast:'Fast',
+    anim_speed_slow:'Slow',
+    confirm_cancel:'Cancel',
+    confirm_ok:'OK'
   }
 };
 
 // State
-let lang='zh',theme='light',rule='high',incognito=false,isRolling=false,mode='dice',_restoring=false,_pendingClearResult=false;
+let lang='zh',theme='light',rule='high',incognito=false,isRolling=false,mode='dice',_restoring=false,_pendingClearResult=false,animSpeed='normal';
 let history=[],optionCount=2;
 
 // ── Constants ──
@@ -402,7 +418,7 @@ function doCoinFlip(opts){
 }
 
 function animateCoin(opts,wi){
-  const coin=$('.coin3d'),DUR=2200,t0=performance.now();
+  const coin=$('.coin3d'),DUR=animDur(2200),t0=performance.now();
   const targetXRot=wi===0?0:180;
   let finalRot;
 
@@ -557,7 +573,7 @@ function doWheelSpin(opts){
 }
 
 function animateWheel(opts,wi){
-  const canvas=$('#wheel-canvas'),DUR=2800;
+  const canvas=$('#wheel-canvas'),DUR=animDur(2800);
   const N=opts.length,segDeg=360/N;
   const targetAngle=wi*segDeg+segDeg/2;
   const offset=(Math.random()*0.8-0.4)*segDeg;
@@ -629,7 +645,7 @@ function buildNumberStage(range){
 }
 
 function animateCardDeck(range,result){
-  const DUR=3000,t0=performance.now();
+  const DUR=animDur(3000),t0=performance.now();
   const cards=$$('.playing-card'),N=cards.length;
   const winnerIdx=Math.floor(Math.random()*N);
 
@@ -745,7 +761,7 @@ function saveNumberHist(range,result){
 }
 
 function animateRoll(opts,rolls,wi){
-  const units=$$('.dice-unit'),DUR=1800,t0=performance.now();
+  const units=$$('.dice-unit'),DUR=animDur(1800),t0=performance.now();
   const sm=new Map();
   units.forEach(u=>{
     u.querySelectorAll('.dice3d').forEach(d=>{
@@ -882,6 +898,21 @@ function spawnConf(){
   setTimeout(()=>c.innerHTML='',2000);
 }
 
+// ── Copy Text Result ──
+function copyTextResult(){
+  const winnerName=$('#result-winner').textContent;
+  const msg=$('#result-msg').textContent;
+  let modeLabel='';
+  if(mode==='coin')modeLabel=I18N[lang]['coin_tab'];
+  else if(mode==='wheel')modeLabel=I18N[lang]['wheel_tab'];
+  else if(mode==='number')modeLabel=I18N[lang]['number_tab'];
+  else modeLabel=I18N[lang]['dice_tab'];
+  const text=`${modeLabel} 🎲 LuckyPick\n${winnerName}\n"${msg}"`;
+  navigator.clipboard.writeText(text).then(()=>{
+    showToast(t('copy_success'));
+  });
+}
+
 function showToast(msg){
   const o=document.querySelector('.toast');if(o)o.remove();
   const el=document.createElement('div');el.className='toast';el.textContent=msg;
@@ -916,33 +947,58 @@ function renderH(){
       :rec.options.map((o,j)=>ic[rec.totals[j]]+o).join('　');
     el.innerHTML=`<div class="hw">${histIcon} ${rec.options[rec.winnerIdx]}</div><div class="ho">${detailLine}</div><div class="hm"><span>${new Date(rec.createdAt).toLocaleDateString().slice(5)} ${new Date(rec.createdAt).toTimeString().slice(0,5)}</span><button class="hd-b" data-i="${i}">🗑</button></div>`;
     el.addEventListener('click',()=>{
-      closeAllPanels();
-      const ol=$('#options-list');ol.innerHTML='';optionCount=0;
-      rec.options.forEach(o=>{
-        optionCount++;
-        const letter=String.fromCharCode(64+optionCount);
-        const r=document.createElement('div');r.className='row';
-        r.innerHTML=`<span class="badge" style="${BC[(optionCount-1)%8]}">${letter}</span><input class="inp" placeholder="${t('opt_placeholder').replace('{0}',letter)}" value="${o}"><button class="del">×</button>`;
-        ol.appendChild(r);bindRow(r);
+      const confirmMsg=lang==='zh'?'加载此历史记录并重新投掷？':'Load this record and re-roll?';
+      showConfirm(confirmMsg).then(ok=>{
+        if(!ok)return;
+        closeAllPanels();
+        const ol=$('#options-list');ol.innerHTML='';optionCount=0;
+        rec.options.forEach(o=>{
+          optionCount++;
+          const letter=String.fromCharCode(64+optionCount);
+          const r=document.createElement('div');r.className='row';
+          r.innerHTML=`<span class="badge" style="${BC[(optionCount-1)%8]}">${letter}</span><input class="inp" placeholder="${t('opt_placeholder').replace('{0}',letter)}" value="${o}"><button class="del">×</button>`;
+          ol.appendChild(r);bindRow(r);
+        });
+        $('#result-section').classList.add('hidden');
+        $('#battle-section').classList.add('hidden');
+        $('#input-section').classList.remove('hidden');
+        $('#footer-lucky').classList.remove('hidden');
+        if(isCoinEntry&&mode!=='coin')switchMode('coin');
+        if(isWheelEntry&&mode!=='wheel')switchMode('wheel');
+        if(isNumberEntry&&mode!=='number')switchMode('number');
+        if(isNumberEntry){
+          $('#num-min').value=rec.min||1;
+          $('#num-max').value=rec.max||10;
+        }
+        doAction();
       });
-      $('#result-section').classList.add('hidden');
-      $('#battle-section').classList.add('hidden');
-      $('#input-section').classList.remove('hidden');
-      $('#footer-lucky').classList.remove('hidden');
-      if(isCoinEntry&&mode!=='coin')switchMode('coin');
-      if(isWheelEntry&&mode!=='wheel')switchMode('wheel');
-      if(isNumberEntry&&mode!=='number')switchMode('number');
-      if(isNumberEntry){
-        $('#num-min').value=rec.min||1;
-        $('#num-max').value=rec.max||10;
-      }
-      doAction();
     });
     l.appendChild(el);
   });
   l.querySelectorAll('.hd-b').forEach(b=>{b.onclick=(e)=>{e.stopPropagation();history.splice(+b.dataset.i,1);chrome.storage.local.set({luckypick_history:history});renderH();};});
 }
-function clearH(){if(confirm(lang==='zh'?'清空所有历史？':'Clear all?')){history=[];chrome.storage.local.set({luckypick_history:[]});renderH();}}
+function clearH(){
+  showConfirm(lang==='zh'?'清空所有历史？':'Clear all?').then(ok=>{
+    if(!ok)return;
+    history=[];chrome.storage.local.set({luckypick_history:[]});renderH();
+  });
+}
+
+// ── Custom Confirm Dialog ──
+function showConfirm(msg){
+  return new Promise(resolve=>{
+    const ov=$('#confirm-overlay'),dlg=$('#confirm-dialog');
+    $('#confirm-msg').textContent=msg;
+    ov.classList.remove('hidden');dlg.classList.remove('hidden');
+    const done=ok=>{
+      ov.classList.add('hidden');dlg.classList.add('hidden');
+      resolve(ok);
+    };
+    $('#confirm-ok').onclick=()=>done(true);
+    $('#confirm-cancel').onclick=()=>done(false);
+    ov.onclick=()=>done(false);
+  });
+}
 
 // ── Export as Image ──
 function exportAsImage(){
@@ -1055,7 +1111,7 @@ function loadSettings(cb){
       return;
     }
     const s=res.luckypick_settings||{};
-    lang=s.lang||'zh';theme=s.theme||'light';rule=s.rule||'high';incognito=!!s.incognito;
+    lang=s.lang||'zh';theme=s.theme||'light';rule=s.rule||'high';incognito=!!s.incognito;animSpeed=s.animSpeed||'normal';
     history=res.luckypick_history||[];
     applyTheme();
     applyI18n();
@@ -1063,11 +1119,15 @@ function loadSettings(cb){
     if(cb)cb();
   });
 }
-function saveSettings(){chrome.storage.local.set({luckypick_settings:{lang,theme,rule,incognito}}, ()=>{
+function saveSettings(){chrome.storage.local.set({luckypick_settings:{lang,theme,rule,incognito,animSpeed}}, ()=>{
   if(chrome.runtime.lastError)console.error('LuckyPick: failed to save settings', chrome.runtime.lastError);
 });}
 
 // ── Panel ──
+// ── Animation Speed Helper ──
+const SPEED_MULT={normal:1,fast:0.6,slow:1.5};
+function animDur(ms){return Math.round(ms*SPEED_MULT[animSpeed]||ms);}
+
 function openHistoryPanel(){$('#history-panel').classList.remove('hidden');$('#panel-overlay').classList.remove('hidden');renderH();}
 function closeAllPanels(){$('#history-panel').classList.add('hidden');$('#settings-panel').classList.add('hidden');$('#panel-overlay').classList.add('hidden');}
 
@@ -1075,6 +1135,7 @@ function openSettingsPanel(){
   $('#set-theme').classList.toggle('on',theme==='dark');
   $('#set-incognito').classList.toggle('on',incognito);
   $$('#set-lang .seg-btn').forEach(b=>b.classList.toggle('active',b.dataset.v===lang));
+  $$('.set-speed .seg-btn').forEach(b=>b.classList.toggle('active',b.dataset.v===animSpeed));
   $$('#set-rule .seg-btn').forEach(b=>b.classList.toggle('active',b.dataset.v===rule));
   $('#settings-panel').classList.remove('hidden');
   $('#panel-overlay').classList.remove('hidden');
@@ -1119,6 +1180,14 @@ function init(){
     $('#tab-wheel').onclick=()=>switchMode('wheel');
     $('#tab-number').onclick=()=>switchMode('number');
 
+    $$('.set-speed .seg-btn').forEach(btn=>{
+      btn.onclick=()=>{
+        animSpeed=btn.dataset.v;
+        $$('.set-speed .seg-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        saveSettings();
+      };
+    });
     $$('#set-rule .seg-btn').forEach(btn=>{
       btn.onclick=()=>{
         rule=btn.dataset.v;
@@ -1139,6 +1208,7 @@ function init(){
       // Don't call saveState() here — visibilitychange will save the clean state
     };
     $('#btn-export').onclick=exportAsImage;
+    $('#btn-copy-text').onclick=copyTextResult;
 
     $('#btn-history').onclick=openHistoryPanel;
     $('#btn-close-panel').onclick=closeAllPanels;
@@ -1168,6 +1238,10 @@ function init(){
     };
 
     document.addEventListener('keydown',e=>{
+      if(e.altKey&&!isRolling){
+        const MODE_MAP={'1':'dice','2':'coin','3':'wheel','4':'number'};
+        if(MODE_MAP[e.key]){e.preventDefault();switchMode(MODE_MAP[e.key]);return;}
+      }
       if(e.key==='Enter'&&e.ctrlKey&&!isRolling&&!$('#input-section').classList.contains('hidden')){
         e.preventDefault();doAction();return;
       }
@@ -1182,13 +1256,13 @@ function init(){
 
     // Restore state after settings loaded
     restoreState();
+    
+    // Auto-save on page hide (more reliable than unload in popup)
+    document.addEventListener('visibilitychange',()=>{
+      if(document.visibilityState==='hidden')saveState();
+    });
   });
 }
-
-// Auto-save on page hide (more reliable than unload in popup)
-document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='hidden')saveState();
-});
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
 else init();
