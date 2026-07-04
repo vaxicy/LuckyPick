@@ -100,8 +100,89 @@ const I18N={
 };
 
 // State
-let lang='zh',theme='light',rule='high',incognito=false,isRolling=false,mode='dice';
+let lang='zh',theme='light',rule='high',incognito=false,isRolling=false,mode='dice',_restoring=false;
 let history=[],optionCount=2;
+
+// ── State Persistence ──
+function getState(){
+  const opts=Array.from($$('.inp')).map(i=>i.value);
+  return {
+    mode,
+    options: opts,
+    numberRange: mode==='number'?{min:parseInt($('#num-min').value)||1,max:parseInt($('#num-max').value)||10}:null,
+    lastResult: null,
+    savedAt: Date.now()
+  };
+}
+function saveState(){
+  const st=getState();
+  chrome.storage.local.set({luckypick_state:st});
+}
+function saveResultState(opts,rolls,wi,range){
+  if(_restoring)return;
+  chrome.storage.local.get(['luckypick_state'],res=>{
+    const st=res.luckypick_state||getState();
+    st.mode=mode;
+    st.options=Array.from($$('.inp')).map(i=>i.value);
+    st.numberRange=mode==='number'?{min:parseInt($('#num-min').value)||1,max:parseInt($('#num-max').value)||10}:null;
+    st.lastResult={mode,opts,rolls,wi,range};
+    st.savedAt=Date.now();
+    chrome.storage.local.set({luckypick_state:st});
+  });
+}
+function clearResultState(){
+  chrome.storage.local.get(['luckypick_state'],res=>{
+    if(!res.luckypick_state)return;
+    res.luckypick_state.lastResult=null;
+    chrome.storage.local.set({luckypick_state:res.luckypick_state});
+  });
+}
+function restoreState(){
+  chrome.storage.local.get(['luckypick_state'],res=>{
+    _restoring=true;
+    const st=res.luckypick_state;
+    if(!st){
+      // No saved state: initialize default UI
+      mode='dice';
+      $$('.mt-btn').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
+      $('#options-wrap').classList.remove('hidden');
+      $('#number-wrap').classList.add('hidden');
+      $('#btn-add-option').classList.remove('hidden');
+      $('#btn-roll').textContent=t('roll_btn');
+      _restoring=false;
+      return;
+    }
+    // Restore mode
+    mode=st.mode||'dice';
+    $$('.mt-btn').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
+    const isCoin=mode==='coin';
+    const isNumber=mode==='number';
+    $('#options-wrap').classList.toggle('hidden',isNumber);
+    $('#number-wrap').classList.toggle('hidden',!isNumber);
+    $('#btn-add-option').classList.toggle('hidden',isCoin||isNumber);
+    const btnKey=isCoin?'coin_btn':mode==='wheel'?'wheel_btn':isNumber?'number_btn':'roll_btn';
+    $('#btn-roll').textContent=t(btnKey);
+    // Restore options
+    if(st.options&&st.options.length){
+      const ol=$('#options-list');ol.innerHTML='';optionCount=0;
+      st.options.forEach(o=>addRow(o));
+    }
+    // Restore number range
+    if(st.numberRange){$('#num-min').value=st.numberRange.min; $('#num-max').value=st.numberRange.max;}
+    // Restore result if exists
+    if(st.lastResult){
+      $('#input-section').classList.add('hidden');
+      $('#footer-lucky').classList.add('hidden');
+      const d=st.lastResult;
+      if(d.mode==='number'){
+        showNumberResult(d.range,parseInt(d.opts[0]));
+      }else{
+        showResult(d.opts,d.rolls,d.wi);
+      }
+    }
+    _restoring=false;
+  });
+}
 
 const $=s=>document.querySelector(s);
 const $$=s=>document.querySelectorAll(s);
@@ -579,6 +660,7 @@ function showNumberResult(range,result){
   const msgs=I18N[lang]['number_result_msgs'];
   $('#result-msg').textContent=msgs[Math.floor(Math.random()*msgs.length)];
   if(!incognito) saveNumberHist(range,result);
+  saveResultState([String(result)],[],0,range);
 }
 
 function saveNumberHist(range,result){
@@ -710,6 +792,7 @@ function showResult(opts,rolls,wi){
   spawnConf();
   if(!incognito&&mode!=='number') saveHist(opts,rolls,wi);
   updateLucky();
+  saveResultState(opts,rolls,wi,null);
 }
 
 function spawnConf(){
@@ -895,14 +978,15 @@ function updateLucky(){
 function loadSettings(cb){
   chrome.storage.local.get(['luckypick_settings','luckypick_history'],res=>{
     const s=res.luckypick_settings||{};
-    lang=s.lang||'zh';theme=s.theme||'light';rule=s.rule||'high';incognito=!!s.incognito;mode=s.mode||'dice';
+    lang=s.lang||'zh';theme=s.theme||'light';rule=s.rule||'high';incognito=!!s.incognito;
     history=res.luckypick_history||[];
     applyTheme();
     applyI18n();
-    updateLucky();if(cb)cb();
+    updateLucky();
+    if(cb)cb();
   });
 }
-function saveSettings(){chrome.storage.local.set({luckypick_settings:{lang,theme,rule,incognito,mode}});}
+function saveSettings(){chrome.storage.local.set({luckypick_settings:{lang,theme,rule,incognito}});}
 
 // ── Panel ──
 function openHistoryPanel(){$('#history-panel').classList.remove('hidden');$('#panel-overlay').classList.remove('hidden');renderH();}
@@ -920,6 +1004,7 @@ function openSettingsPanel(){
 // ── Mode Switch ──
 function switchMode(m){
   if(isRolling)return;
+  clearResultState();
   mode=m;
   $$('.mt-btn').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
   const isCoin=mode==='coin';
@@ -939,6 +1024,7 @@ function switchMode(m){
   $('#input-section').classList.remove('hidden');
   $('#footer-lucky').classList.remove('hidden');
   saveSettings();
+  saveState();
 }
 
 // ── Init ──
@@ -948,17 +1034,7 @@ function init(){
 
     $('#btn-add-option').onclick=()=>addRow();
 
-    // Mode tabs
-    $$('.mt-btn').forEach(b=>{b.classList.toggle('active',b.dataset.mode===mode);});
-    const isCoinInit=mode==='coin';
-    const isWheelInit=mode==='wheel';
-    const isNumberInit=mode==='number';
-    $('#options-wrap').classList.toggle('hidden',isNumberInit);
-    $('#number-wrap').classList.toggle('hidden',!isNumberInit);
-    $('#btn-add-option').classList.toggle('hidden',isCoinInit||isNumberInit);
-    if(isCoinInit&&optionCount>2){while(optionCount>2){$$('.row')[2].remove();optionCount--;}reindex();}
-    const btnInitKey=isCoinInit?'coin_btn':isWheelInit?'wheel_btn':isNumberInit?'number_btn':'roll_btn';
-    $('#btn-roll').textContent=t(btnInitKey);
+    // Mode tabs — event listeners only, UI state restored by restoreState()
     $('#tab-dice').onclick=()=>switchMode('dice');
     $('#tab-coin').onclick=()=>switchMode('coin');
     $('#tab-wheel').onclick=()=>switchMode('wheel');
@@ -980,6 +1056,8 @@ function init(){
       $('#input-section').classList.remove('hidden');
       $('#footer-lucky').classList.remove('hidden');
       $$('.dice-unit').forEach(u=>u.classList.remove('winner','loser'));
+      clearResultState();
+      saveState();
     };
     $('#btn-export').onclick=exportAsImage;
 
@@ -1017,8 +1095,21 @@ function init(){
       if(e.key==='Enter'&&!isRolling&&!$('#input-section').classList.contains('hidden')&&document.activeElement.tagName!=='INPUT')
         doAction();
     });
+
+    // Auto-save state on input changes
+    $('#options-list').addEventListener('input',e=>{if(e.target.classList.contains('inp'))saveState();});
+    $('#num-min').addEventListener('input',saveState);
+    $('#num-max').addEventListener('input',saveState);
+
+    // Restore state after settings loaded
+    restoreState();
   });
 }
+
+// Auto-save on page hide (more reliable than unload in popup)
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden')saveState();
+});
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
 else init();
