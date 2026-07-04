@@ -4,8 +4,18 @@
   const I18N = {
     zh: {
       app_name: '\u522B\u7EA0\u7ED3\u4E86',
-      roll_btn: '\uD83C\uDFB2 \u6447\u9AB0\u51B3\u5B9A',
-      battle_title: '\u6447\u9AB0\u4E2D...',
+      mode_label: '\u73A9\u6CD5',
+      mode_dice: '\u9AB0\u5B50',
+      mode_coin: '\u786C\u5E01',
+      mode_wheel: '\u8F6C\u76D8',
+      coin_heads: '\u6B63',
+      coin_tails: '\u53CD',
+      roll_btn_dice: '\uD83C\uDFB2 \u6447\u9AB0\u51B3\u5B9A',
+      roll_btn_coin: '\uD83E\uDE99 \u629B\u786C\u5E01',
+      roll_btn_wheel: '\uD83C\uDFA1 \u8F6C\u4E00\u4E0B',
+      battle_title_dice: '\u6447\u9AB0\u4E2D...',
+      battle_title_coin: '\u786C\u5E01\u7FFB\u8F6C\u4E2D...',
+      battle_title_wheel: '\u8F6C\u76D8\u65CB\u8F6C\u4E2D...',
       winner_label: '\u7ED3\u679C',
       again: '\u518D\u6765\u4E00\u6B21',
       export_btn: '\uD83D\uDDBC \u5BFC\u51FA\u56FE\u7247',
@@ -16,9 +26,12 @@
       exported: '\u56FE\u7247\u5DF2\u5BFC\u51FA',
       min_options: '\u81F3\u5C11\u9700\u8981 2 \u4E2A\u9009\u9879',
       max_options: '\u6700\u591A\u652F\u6301 6 \u4E2A\u9009\u9879',
+      coin_hint: '\u786C\u5E01\u6A21\u5F0F\u53EA\u4F7F\u7528\u524D 2 \u4E2A\u9009\u9879',
       tie_title: '\u5E73\u5C40\u4E86',
       tie_msg: '\u518D\u6447\u4E00\u6B21\u5427',
-      result_msgs: ['\u547D\u8FD0\u7684\u5C0F\u9AB0\u5B50\u70B9\u5934\u4E86', '\u522B\u7EA0\u7ED3\uFF0C\u5C31\u662F\u5B83', '\u597D\u8FD0\u7AD9\u5728\u5B83\u8FD9\u8FB9', '\u9AB0\u5B50\u5DF2\u7ECF\u66FF\u4F60\u51B3\u5B9A\u5566'],
+      result_msgs_dice: ['\u547D\u8FD0\u7684\u5C0F\u9AB0\u5B50\u70B9\u5934\u4E86', '\u522B\u7EA0\u7ED3\uFF0C\u5C31\u662F\u5B83', '\u597D\u8FD0\u7AD9\u5728\u5B83\u8FD9\u8FB9'],
+      result_msgs_coin: ['\u786C\u5E01\u8F7B\u8F7B\u843D\u4E0B\uFF0C\u7B54\u6848\u5C31\u5728\u8FD9\u91CC', '\u6B63\u53CD\u4E4B\u95F4\uFF0C\u5B83\u88AB\u9009\u4E2D\u4E86', '\u4ECA\u5929\u8FD9\u4E00\u9762\u66F4\u4EAE'],
+      result_msgs_wheel: ['\u8F6C\u76D8\u505C\u4F4F\u7684\u5730\u65B9\uFF0C\u5C31\u662F\u7B54\u6848', '\u5C0F\u8F6C\u76D8\u5DF2\u7ECF\u5E2E\u4F60\u9009\u597D\u4E86', '\u597D\u8FD0\u6307\u9488\u6307\u5411\u4E86\u5B83'],
       add_option: '+ \u6DFB\u52A0\u9009\u9879',
       opt_placeholder_a: '\u9009\u9879 A...',
       opt_placeholder_b: '\u9009\u9879 B...',
@@ -41,8 +54,18 @@
     },
     en: {
       app_name: 'LuckyPick',
-      roll_btn: '\uD83C\uDFB2 Roll dice',
-      battle_title: 'Rolling...',
+      mode_label: 'Mode',
+      mode_dice: 'Dice',
+      mode_coin: 'Coin',
+      mode_wheel: 'Wheel',
+      coin_heads: 'Head',
+      coin_tails: 'Tail',
+      roll_btn_dice: '\uD83C\uDFB2 Roll dice',
+      roll_btn_coin: '\uD83E\uDE99 Flip coin',
+      roll_btn_wheel: '\uD83C\uDFA1 Spin wheel',
+      battle_title_dice: 'Rolling...',
+      battle_title_coin: 'Flipping...',
+      battle_title_wheel: 'Spinning...',
       winner_label: 'Result',
       again: 'Again',
       export_btn: '\uD83D\uDDBC Export',
@@ -53,9 +76,12 @@
       exported: 'Image exported',
       min_options: 'Need at least 2 options',
       max_options: 'Up to 6 options',
+      coin_hint: 'Coin mode uses the first 2 options',
       tie_title: 'It is a tie',
       tie_msg: 'Roll again',
-      result_msgs: ['The dice have spoken', 'No more overthinking', 'Luck picked this one', 'Tiny fate approves'],
+      result_msgs_dice: ['The dice have spoken', 'No more overthinking', 'Luck picked this one'],
+      result_msgs_coin: ['The coin landed here', 'This side shines today', 'Heads or tails, this is it'],
+      result_msgs_wheel: ['The wheel stopped here', 'The tiny wheel picked this one', 'Luck points this way'],
       add_option: '+ Add option',
       opt_placeholder_a: 'Option A...',
       opt_placeholder_b: 'Option B...',
@@ -82,6 +108,8 @@
   const MAX_HISTORY = 50;
   const RULE = 'high';
   const SPEED = { fast: 0.65, normal: 1, slow: 1.45 };
+  const MODES = ['dice', 'coin', 'wheel'];
+  const WHEEL_COLORS = ['#E88BA8', '#7C6FBE', '#6BAFE0', '#7BC89E', '#F1C56D', '#B58BE8'];
   const STORAGE = {
     settings: 'luckypick_settings',
     history: 'luckypick_history',
@@ -90,6 +118,7 @@
 
   let lang = 'zh';
   let theme = 'light';
+  let mode = 'dice';
   let incognito = false;
   let animSpeed = 'normal';
   let history = [];
@@ -123,11 +152,16 @@
       bindRows();
       bindEvents();
       restoreState();
+      applyModeUI();
     });
   }
 
   function bindEvents() {
     on('#btn-add-option', 'click', () => {
+      if (mode === 'coin') {
+        showToast(t('coin_hint'));
+        return;
+      }
       if (optionCount >= MAX_OPTIONS) {
         showToast(t('max_options'));
         return;
@@ -135,7 +169,7 @@
       addRow('');
       saveStateDebounced();
     });
-    on('#btn-roll', 'click', doRoll);
+    on('#btn-roll', 'click', doPick);
     on('#btn-again', 'click', resetToInput);
     on('#btn-export', 'click', exportAsImage);
     on('#btn-history', 'click', openHistoryPanel);
@@ -145,11 +179,19 @@
     on('#panel-overlay', 'click', closePanels);
     on('#btn-clear-history', 'click', clearHistory);
 
+    $$('#set-mode .seg-btn').forEach((button) => {
+      button.addEventListener('click', () => {
+        setMode(button.dataset.value);
+        closePanels();
+      });
+    });
+
     $$('#set-lang .seg-btn').forEach((button) => {
       button.addEventListener('click', () => {
         lang = button.dataset.value;
         applyI18n();
         renderSettings();
+        applyModeUI();
         saveSettings();
       });
     });
@@ -179,11 +221,11 @@
       if (event.target.classList.contains('option-input')) saveStateDebounced();
     });
     on('#options-list', 'keydown', (event) => {
-      if (event.key === 'Enter') doRoll();
+      if (event.key === 'Enter') doPick();
     });
 
     document.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter' && event.ctrlKey && !isRolling) doRoll();
+      if (event.key === 'Enter' && event.ctrlKey && !isRolling) doPick();
       if (event.key === 'Escape') closePanels();
     });
     document.addEventListener('visibilitychange', () => {
@@ -194,6 +236,24 @@
   function on(selector, event, handler) {
     const node = $(selector);
     if (node) node.addEventListener(event, handler);
+  }
+
+  function setMode(nextMode) {
+    if (!MODES.includes(nextMode) || nextMode === mode) return;
+    mode = nextMode;
+    clearResultState();
+    applyModeUI();
+    renderSettings();
+    saveSettings();
+    saveStateDebounced();
+  }
+
+  function applyModeUI() {
+    document.body.dataset.mode = mode;
+    setText('#btn-roll', t(`roll_btn_${mode}`));
+    const addButton = $('#btn-add-option');
+    if (addButton) addButton.classList.toggle('hidden', mode === 'coin');
+    reindexRows();
   }
 
   function applyI18n() {
@@ -255,7 +315,7 @@
     const button = row.querySelector('.delete-btn');
     if (!button) return;
     button.addEventListener('click', () => {
-      if (optionCount <= 2) return;
+      if (mode === 'coin' || optionCount <= 2) return;
       row.remove();
       optionCount -= 1;
       reindexRows();
@@ -285,7 +345,8 @@
       const badge = row.querySelector('.badge');
       const button = row.querySelector('.delete-btn');
       if (badge) badge.textContent = String.fromCharCode(65 + index);
-      if (button) button.style.visibility = optionCount > 2 ? 'visible' : 'hidden';
+      row.classList.toggle('hidden', mode === 'coin' && index > 1);
+      if (button) button.style.visibility = mode !== 'coin' && optionCount > 2 ? 'visible' : 'hidden';
     });
     updatePlaceholders();
   }
@@ -299,13 +360,19 @@
     });
   }
 
-  function getOptions() {
-    return $$('.option-input').map((input) => input.value.trim()).filter(Boolean);
+  function getAllOptions() {
+    return $$('.option-input').map((input) => input.value.trim());
   }
 
-  function doRoll() {
+  function getModeOptions() {
+    const values = getAllOptions();
+    const limit = mode === 'coin' ? 2 : MAX_OPTIONS;
+    return values.slice(0, limit).filter(Boolean);
+  }
+
+  function doPick() {
     if (isRolling) return;
-    const options = getOptions();
+    const options = getModeOptions();
     if (options.length < 2) {
       showToast(t('min_options'));
       return;
@@ -317,14 +384,21 @@
     $('#input-section')?.classList.add('hidden');
     $('#result-section')?.classList.add('hidden');
     $('#battle-section')?.classList.remove('hidden');
-    setText('#battle-section .battle-title', t('battle_title'));
+    setText('#battle-section .battle-title', t(`battle_title_${mode}`));
     if ($('#progress-bar')) $('#progress-bar').style.width = '0%';
 
+    if (mode === 'coin') runCoin(options);
+    else if (mode === 'wheel') runWheel(options);
+    else runDice(options);
+  }
+
+  function runDice(options) {
     const rolls = options.map(() => Math.floor(Math.random() * 6) + 1);
     const winners = getWinners(rolls);
     const winnerIndex = winners.length === 1 ? winners[0] : -1;
     const result = {
       id: Date.now(),
+      mode: 'dice',
       options,
       rolls,
       winnerIndex,
@@ -334,15 +408,54 @@
       createdAt: new Date().toISOString()
     };
 
-    buildBattleStage(options);
-    animateRoll(rolls, winnerIndex, () => {
-      isRolling = false;
-      $('#btn-roll')?.classList.remove('rolling');
-      lastResult = result;
-      renderResult(result);
-      saveResultState(result);
-      if (!incognito) saveHistory(result);
-    });
+    buildDiceStage(options);
+    animateDice(rolls, winnerIndex, () => finishResult(result));
+  }
+
+  function runCoin(options) {
+    const winnerIndex = Math.floor(Math.random() * 2);
+    const result = {
+      id: Date.now(),
+      mode: 'coin',
+      options: options.slice(0, 2),
+      winnerIndex,
+      winner: options[winnerIndex],
+      coinSide: winnerIndex === 0 ? 'heads' : 'tails',
+      isTie: false,
+      createdAt: new Date().toISOString()
+    };
+
+    buildCoinStage(options);
+    animateCoin(winnerIndex, () => finishResult(result));
+  }
+
+  function runWheel(options) {
+    const winnerIndex = Math.floor(Math.random() * options.length);
+    const slice = 360 / options.length;
+    const finalRotation = (360 * 5) - (winnerIndex * slice + slice / 2);
+    const result = {
+      id: Date.now(),
+      mode: 'wheel',
+      options,
+      winnerIndex,
+      winner: options[winnerIndex],
+      wheelColor: wheelColor(winnerIndex),
+      wheelRotation: finalRotation,
+      isTie: false,
+      createdAt: new Date().toISOString()
+    };
+
+    buildWheelStage(options);
+    animateWheel(finalRotation, () => finishResult(result));
+  }
+
+  function finishResult(result) {
+    isRolling = false;
+    $('#btn-roll')?.classList.remove('rolling');
+    lastResult = result;
+    renderResult(result);
+    saveResultState(result);
+    if (!incognito) saveHistory(result);
   }
 
   function getWinners(rolls) {
@@ -350,9 +463,10 @@
     return rolls.map((value, index) => (value === target ? index : -1)).filter((index) => index >= 0);
   }
 
-  function buildBattleStage(options) {
+  function buildDiceStage(options) {
     const stage = $('#dice-stage');
     if (!stage) return;
+    stage.className = 'dice-stage';
     stage.innerHTML = '';
     options.forEach((option) => {
       const unit = document.createElement('div');
@@ -368,7 +482,34 @@
     });
   }
 
-  function animateRoll(rolls, winnerIndex, done) {
+  function buildCoinStage(options) {
+    const stage = $('#dice-stage');
+    if (!stage) return;
+    stage.className = 'coin-stage';
+    stage.innerHTML = `
+      <div class="coin3d" id="coin3d">
+        <div class="coin-face head" aria-hidden="true"></div>
+        <div class="coin-face tail" aria-hidden="true"></div>
+      </div>
+    `;
+  }
+
+  function buildWheelStage(options) {
+    const stage = $('#dice-stage');
+    if (!stage) return;
+    stage.className = 'wheel-stage';
+    stage.innerHTML = `
+      <div class="wheel-wrap">
+        <div class="wheel-pointer"></div>
+        <div class="wheel-disc" id="wheel-disc"></div>
+        <div class="wheel-hub"></div>
+      </div>
+    `;
+    const wheel = $('#wheel-disc');
+    if (wheel) wheel.style.background = wheelGradient(options.length);
+  }
+
+  function animateDice(rolls, winnerIndex, done) {
     const units = $$('#dice-stage .dice-unit');
     const diceList = units.map((unit) => unit.querySelector('.dice3d')).filter(Boolean);
     const duration = animDuration(820);
@@ -395,8 +536,48 @@
           unit.classList.toggle('winner', winnerIndex === index);
           unit.classList.toggle('loser', winnerIndex >= 0 && winnerIndex !== index);
         });
-        setTimeout(done, 300);
+        setTimeout(done, 260);
       }
+    }
+
+    requestAnimationFrame(tick);
+  }
+
+  function animateCoin(winnerIndex, done) {
+    const coin = $('#coin3d');
+    const duration = animDuration(900);
+    const start = performance.now();
+    const finalY = 360 * 5 + (winnerIndex === 1 ? 180 : 0);
+
+    function tick(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = easeOutCubic(progress);
+      if ($('#progress-bar')) $('#progress-bar').style.width = `${progress * 100}%`;
+      if (coin) {
+        const wobble = Math.sin(progress * Math.PI * 8) * (1 - progress) * 16;
+        coin.style.transform = `rotateY(${finalY * eased}deg) rotateX(${wobble}deg)`;
+      }
+      if (progress < 1) requestAnimationFrame(tick);
+      else setTimeout(done, 220);
+    }
+
+    requestAnimationFrame(tick);
+  }
+
+  function animateWheel(finalRotation, done) {
+    const wheel = $('#wheel-disc');
+    const duration = animDuration(1100);
+    const start = performance.now();
+
+    function tick(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = easeOutCubic(progress);
+      if ($('#progress-bar')) $('#progress-bar').style.width = `${progress * 100}%`;
+      if (wheel) wheel.style.transform = `rotate(${finalRotation * eased}deg)`;
+      if (progress < 1) requestAnimationFrame(tick);
+      else setTimeout(done, 220);
     }
 
     requestAnimationFrame(tick);
@@ -408,23 +589,59 @@
     document.body.classList.add('result-mode');
 
     setText('#result-winner', result.isTie ? t('tie_title') : result.winner);
-    setText('#result-msg', result.isTie ? t('tie_msg') : randomItem(t('result_msgs')));
+    setText('#result-msg', result.isTie ? t('tie_msg') : randomItem(t(`result_msgs_${result.mode || 'dice'}`)));
 
     const visual = $('#result-dice-visual');
     if (!visual) return;
     visual.innerHTML = '';
+    visual.className = `result-dice-visual result-${result.mode || 'dice'}-visual`;
+
+    if (result.mode === 'coin') renderCoinVisual(visual, result);
+    else if (result.mode === 'wheel') renderWheelVisual(visual, result);
+    else renderDiceVisual(visual, result);
+
+    spawnConfetti();
+  }
+
+  function renderDiceVisual(visual, result) {
+    const rolls = Array.isArray(result.rolls) ? result.rolls : [];
     result.options.forEach((option, index) => {
       const chip = document.createElement('div');
       chip.className = 'score-chip';
       if (index === result.winnerIndex) chip.classList.add('win');
       chip.innerHTML = `
-        <div class="score-number">${result.rolls[index]}</div>
+        <div class="score-number">${rolls[index] || '-'}</div>
         <div class="score-label">${escapeHtml(option)}</div>
       `;
       visual.appendChild(chip);
     });
+  }
 
-    spawnConfetti();
+  function renderCoinVisual(visual, result) {
+    result.options.forEach((option, index) => {
+      const chip = document.createElement('div');
+      chip.className = 'score-chip';
+      if (index === result.winnerIndex) chip.classList.add('win');
+      chip.innerHTML = `
+        <div class="score-number">${coinSideLabel(index)}</div>
+        <div class="score-label">${escapeHtml(option)}</div>
+      `;
+      visual.appendChild(chip);
+    });
+  }
+
+  function renderWheelVisual(visual, result) {
+    result.options.forEach((option, index) => {
+      const chip = document.createElement('div');
+      chip.className = 'score-chip';
+      if (index === result.winnerIndex) chip.classList.add('win');
+      chip.style.setProperty('--chip-color', wheelColor(index));
+      chip.innerHTML = `
+        <div class="score-number">${String.fromCharCode(65 + index)}</div>
+        <div class="score-label">${escapeHtml(option)}</div>
+      `;
+      visual.appendChild(chip);
+    });
   }
 
   function resetToInput() {
@@ -432,6 +649,7 @@
     $('#battle-section')?.classList.add('hidden');
     $('#input-section')?.classList.remove('hidden');
     document.body.classList.remove('result-mode');
+    applyModeUI();
     clearResultState();
   }
 
@@ -459,10 +677,11 @@
     history.slice(0, 20).forEach((record) => {
       const item = document.createElement('div');
       item.className = 'history-item';
+      const recordMode = record.mode || 'dice';
       const title = record.isTie ? t('tie_title') : record.winner;
-      const detail = record.options.map((option, index) => `${option} ${record.rolls[index]}`).join(' / ');
+      const detail = historyDetail(record);
       item.innerHTML = `
-        <div class="history-title">&#127922; ${escapeHtml(title)}</div>
+        <div class="history-title">${modeIcon(recordMode)} ${escapeHtml(title)}</div>
         <div class="history-detail">${escapeHtml(detail)}</div>
         <div class="history-meta">${formatTime(record.createdAt)}</div>
       `;
@@ -476,14 +695,28 @@
     });
   }
 
+  function historyDetail(record) {
+    if ((record.mode || 'dice') === 'dice') {
+      const rolls = Array.isArray(record.rolls) ? record.rolls : [];
+      return record.options.map((option, index) => `${option} ${rolls[index] || '-'}`).join(' / ');
+    }
+    if (record.mode === 'coin') return record.options.join(' / ');
+    return record.options.map((option, index) => `${String.fromCharCode(65 + index)} ${option}`).join(' / ');
+  }
+
   function loadHistoryRecord(record) {
     const list = $('#options-list');
     if (!list) return;
     list.innerHTML = '';
     optionCount = 0;
-    record.options.forEach((option) => addRow(option));
+    (record.options || []).slice(0, MAX_OPTIONS).forEach((option) => addRow(option));
+    while (optionCount < 2) addRow('');
+    mode = MODES.includes(record.mode) ? record.mode : 'dice';
+    applyModeUI();
+    renderSettings();
     closePanels();
     resetToInput();
+    saveSettings();
     saveStateDebounced();
   }
 
@@ -514,6 +747,9 @@
   }
 
   function renderSettings() {
+    $$('#set-mode .seg-btn').forEach((button) => {
+      button.classList.toggle('active', button.dataset.value === mode);
+    });
     $$('#set-lang .seg-btn').forEach((button) => {
       button.classList.toggle('active', button.dataset.value === lang);
     });
@@ -529,6 +765,7 @@
       const settings = result[STORAGE.settings] || {};
       lang = settings.lang || 'zh';
       theme = settings.theme || 'light';
+      mode = MODES.includes(settings.mode) ? settings.mode : 'dice';
       incognito = Boolean(settings.incognito);
       animSpeed = settings.animSpeed || 'normal';
       history = Array.isArray(result[STORAGE.history]) ? result[STORAGE.history] : [];
@@ -538,12 +775,13 @@
 
   function saveSettings() {
     chrome.storage.local.set({
-      [STORAGE.settings]: { lang, theme, rule: RULE, incognito, animSpeed }
+      [STORAGE.settings]: { lang, theme, mode, rule: RULE, incognito, animSpeed }
     });
   }
 
   function getState() {
     return {
+      mode,
       options: $$('.option-input').map((input) => input.value),
       lastResult,
       savedAt: Date.now()
@@ -572,6 +810,7 @@
   function restoreState() {
     chrome.storage.local.get([STORAGE.state], (result) => {
       const state = result[STORAGE.state];
+      if (state && MODES.includes(state.mode)) mode = state.mode;
       if (state && Array.isArray(state.options) && state.options.length >= 2) {
         const list = $('#options-list');
         if (list) list.innerHTML = '';
@@ -581,7 +820,8 @@
       if (state && state.lastResult && Array.isArray(state.lastResult.options)) {
         lastResult = state.lastResult;
       }
-      reindexRows();
+      while (optionCount < 2) addRow('');
+      applyModeUI();
       renderSettings();
     });
   }
@@ -603,6 +843,7 @@
     const sub = isDark ? '#ABA4C9' : '#736D90';
     const accent = '#7C6FBE';
     const pink = '#E88BA8';
+    const modeName = t(`mode_${lastResult.mode || 'dice'}`);
 
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, width, height);
@@ -621,7 +862,7 @@
     ctx.textAlign = 'center';
     ctx.fillStyle = accent;
     ctx.font = '800 16px Segoe UI, sans-serif';
-    ctx.fillText('\uD83C\uDFB2 LuckyPick', width / 2, 72);
+    ctx.fillText(`LuckyPick - ${modeName}`, width / 2, 72);
 
     ctx.fillStyle = pink;
     ctx.font = '900 30px Segoe UI, sans-serif';
@@ -629,35 +870,74 @@
 
     ctx.fillStyle = sub;
     ctx.font = '500 14px Segoe UI, sans-serif';
-    ctx.fillText(lastResult.isTie ? t('tie_msg') : randomItem(t('result_msgs')), width / 2, 148);
+    ctx.fillText(lastResult.isTie ? t('tie_msg') : randomItem(t(`result_msgs_${lastResult.mode || 'dice'}`)), width / 2, 148);
 
-    const chipWidth = Math.min(92, Math.floor((width - 96) / lastResult.options.length));
-    const startX = (width - chipWidth * lastResult.options.length - 8 * (lastResult.options.length - 1)) / 2;
-    lastResult.options.forEach((option, index) => {
-      const x = startX + index * (chipWidth + 8);
-      const y = 176;
-      roundRect(ctx, x, y, chipWidth, 56, 12, index === lastResult.winnerIndex ? '#FFF0F6' : (isDark ? '#2B2840' : '#F5F4FA'));
-      ctx.fillStyle = index === lastResult.winnerIndex ? pink : accent;
-      ctx.font = '900 22px Segoe UI, sans-serif';
-      ctx.fillText(String(lastResult.rolls[index]), x + chipWidth / 2, y + 25);
-      ctx.fillStyle = sub;
-      ctx.font = '700 10px Segoe UI, sans-serif';
-      ctx.fillText(trimText(ctx, option, chipWidth - 10), x + chipWidth / 2, y + 43);
-    });
+    drawExportChips(ctx, lastResult, isDark, accent, pink, sub, width);
 
     ctx.fillStyle = sub;
     ctx.font = '600 12px Segoe UI, sans-serif';
-    ctx.fillText(t('rule_export_high'), width / 2, 260);
+    ctx.fillText(exportFooter(lastResult), width / 2, 260);
 
     canvas.toBlob((blob) => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `luckypick-dice-${fileDate()}.png`;
+      a.download = `luckypick-${lastResult.mode || 'dice'}-${fileDate()}.png`;
       a.click();
       URL.revokeObjectURL(url);
       showToast(t('exported'));
     }, 'image/png');
+  }
+
+  function drawExportChips(ctx, result, isDark, accent, pink, sub, width) {
+    const chipWidth = Math.min(92, Math.floor((width - 96) / result.options.length));
+    const startX = (width - chipWidth * result.options.length - 8 * (result.options.length - 1)) / 2;
+    result.options.forEach((option, index) => {
+      const x = startX + index * (chipWidth + 8);
+      const y = 176;
+      const isWin = index === result.winnerIndex;
+      const isWheel = result.mode === 'wheel';
+      const chipFill = isWheel ? wheelColor(index) : (isWin ? '#FFF0F6' : (isDark ? '#2B2840' : '#F5F4FA'));
+      roundRect(ctx, x, y, chipWidth, 56, 12, chipFill);
+      ctx.fillStyle = isWheel ? '#FFFFFF' : (isWin ? pink : accent);
+      ctx.font = '900 22px Segoe UI, sans-serif';
+      ctx.fillText(exportChipText(result, index), x + chipWidth / 2, y + 25);
+      ctx.fillStyle = isWheel ? 'rgba(255,255,255,.88)' : sub;
+      ctx.font = '700 10px Segoe UI, sans-serif';
+      ctx.fillText(trimText(ctx, option, chipWidth - 10), x + chipWidth / 2, y + 43);
+    });
+  }
+
+  function exportChipText(result, index) {
+    if ((result.mode || 'dice') === 'dice') return String((result.rolls || [])[index] || '-');
+    if (result.mode === 'coin') return coinSideLabel(index);
+    return String.fromCharCode(65 + index);
+  }
+
+  function coinSideLabel(index) {
+    return index === 0 ? t('coin_heads') : t('coin_tails');
+  }
+
+  function exportFooter(result) {
+    if ((result.mode || 'dice') === 'dice') return t('rule_export_high');
+    return t(`mode_${result.mode}`);
+  }
+
+  function wheelGradient(count) {
+    const step = 360 / count;
+    const gap = Math.min(1, step * 0.08);
+    const parts = [];
+    for (let i = 0; i < count; i += 1) {
+      const start = i * step;
+      const end = (i + 1) * step;
+      parts.push(`${wheelColor(i)} ${start}deg ${end - gap}deg`);
+      parts.push(`rgba(255,255,255,.72) ${end - gap}deg ${end}deg`);
+    }
+    return `conic-gradient(from 0deg, ${parts.join(', ')})`;
+  }
+
+  function wheelColor(index) {
+    return WHEEL_COLORS[index % WHEEL_COLORS.length];
   }
 
   function roundRect(ctx, x, y, w, h, r, fill) {
@@ -742,8 +1022,18 @@
     return Math.round(ms * (SPEED[animSpeed] || 1));
   }
 
+  function easeOutCubic(value) {
+    return 1 - Math.pow(1 - value, 3);
+  }
+
   function randomItem(list) {
     return list[Math.floor(Math.random() * list.length)];
+  }
+
+  function modeIcon(value) {
+    if (value === 'coin') return '\uD83E\uDE99';
+    if (value === 'wheel') return '\uD83C\uDFA1';
+    return '\uD83C\uDFB2';
   }
 
   function formatTime(value) {

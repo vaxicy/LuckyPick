@@ -124,6 +124,15 @@ button {
   width: 30px;
   height: 30px;
   border-radius: 11px;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.close-mark {
+  display: block;
+  line-height: 1;
+  transform: translateY(-.5px);
+  pointer-events: none;
 }
 
 .icon-btn:hover,
@@ -251,6 +260,10 @@ button {
   flex-shrink: 0;
 }
 
+.mode-segmented .seg-btn {
+  padding: 0 6px;
+}
+
 .seg-btn {
   min-width: 0;
   flex: 1;
@@ -270,6 +283,10 @@ button {
   min-height: 24px;
   padding: 0 7px;
   font-size: 11px;
+}
+
+.segmented.small.mode-segmented .seg-btn {
+  padding: 0 5px;
 }
 
 .seg-btn.active {
@@ -330,6 +347,133 @@ button {
   gap: 22px;
   perspective: 700px;
   padding: 3px 0 8px;
+}
+
+.coin-stage,
+.wheel-stage {
+  min-height: 126px;
+  display: grid;
+  place-items: center;
+  padding: 3px 0 8px;
+  perspective: 800px;
+}
+
+.coin3d {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.coin-face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid #d4ad61;
+  border-radius: 50%;
+  backface-visibility: hidden;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, .50), transparent 34%),
+    repeating-radial-gradient(circle, transparent 0 12px, rgba(133, 90, 28, .08) 13px 14px),
+    linear-gradient(145deg, #fff0ba, #e7bf64 55%, #c28b35);
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, .55),
+    inset 0 -1px 3px rgba(112, 75, 24, .14),
+    0 5px 14px rgba(150, 106, 42, .14);
+}
+
+.coin-face::before,
+.coin-face::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+}
+
+.coin-face.head::before {
+  inset: 7px;
+  border: 1px solid rgba(120, 82, 27, .18);
+}
+
+.coin-face.head::after {
+  inset: 31px;
+  border-radius: 50%;
+  background: rgba(122, 81, 23, .62);
+  box-shadow:
+    0 -17px 0 -3px rgba(122, 81, 23, .38),
+    0 17px 0 -3px rgba(122, 81, 23, .38),
+    17px 0 0 -3px rgba(122, 81, 23, .38),
+    -17px 0 0 -3px rgba(122, 81, 23, .38);
+}
+
+.coin-face.tail {
+  transform: rotateY(180deg);
+  border-color: #c49a52;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, .40), transparent 34%),
+    repeating-radial-gradient(circle, transparent 0 12px, rgba(110, 75, 27, .08) 13px 14px),
+    linear-gradient(145deg, #f5d88d, #d5a446 58%, #a87129);
+}
+
+.coin-face.tail::before {
+  inset: 8px;
+  border: 1px solid rgba(109, 72, 22, .20);
+}
+
+.coin-face.tail::after {
+  left: 21px;
+  right: 21px;
+  top: 26px;
+  height: 4px;
+  border-radius: var(--pill);
+  background: rgba(113, 75, 25, .48);
+  box-shadow: 0 11px 0 rgba(113, 75, 25, .42);
+}
+
+.result-coin-visual .score-number {
+  font-size: 14px;
+}
+
+.wheel-wrap {
+  position: relative;
+  width: 118px;
+  height: 118px;
+  display: grid;
+  place-items: center;
+}
+
+.wheel-pointer {
+  position: absolute;
+  top: -4px;
+  z-index: 2;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 15px solid var(--accent-2);
+  filter: drop-shadow(0 2px 3px rgba(80, 60, 100, .18));
+}
+
+.wheel-disc {
+  width: 110px;
+  height: 110px;
+  border: 4px solid var(--card);
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 0 1px rgba(124, 111, 190, .16),
+    0 10px 24px rgba(65, 55, 120, .14);
+  will-change: transform;
+}
+
+.wheel-hub {
+  position: absolute;
+  width: 25px;
+  height: 25px;
+  border: 4px solid var(--card);
+  border-radius: 50%;
+  background: linear-gradient(145deg, var(--accent), var(--accent-2));
+  box-shadow: 0 3px 8px rgba(65, 55, 120, .18);
 }
 
 .progress-track {
@@ -542,6 +686,24 @@ button {
 
 .score-chip.win .score-number {
   color: var(--accent-2);
+}
+
+.result-wheel-visual .score-chip {
+  background: color-mix(in srgb, var(--chip-color) 14%, var(--card));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--chip-color) 34%, transparent);
+}
+
+.result-wheel-visual .score-chip.win {
+  background: color-mix(in srgb, var(--chip-color) 22%, var(--card));
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--chip-color) 72%, transparent);
+}
+
+.result-wheel-visual .score-number {
+  color: var(--chip-color);
+}
+
+.result-wheel-visual .score-chip.win .score-number {
+  color: var(--chip-color);
 }
 
 .score-label {

@@ -3,12 +3,14 @@ chrome.runtime.onInstalled.addListener(function () {
     var settings = Object.assign({
       lang: 'zh',
       theme: 'light',
+      mode: 'dice',
       rule: 'high',
       incognito: false,
       animSpeed: 'normal'
     }, data.luckypick_settings || {});
 
     settings.rule = 'high';
+    if (['dice', 'coin', 'wheel'].indexOf(settings.mode) === -1) settings.mode = 'dice';
     if (['fast', 'normal', 'slow'].indexOf(settings.animSpeed) === -1) settings.animSpeed = 'normal';
 
     chrome.storage.local.set({

@@ -65,7 +65,7 @@
   <aside id="history-panel" class="panel hidden">
     <div class="panel-head">
       <h2 data-i18n="history_title">History</h2>
-      <button id="btn-close-history" class="close-btn" type="button">&times;</button>
+      <button id="btn-close-history" class="close-btn" type="button"><span class="close-mark">&times;</span></button>
     </div>
     <div id="history-list" class="panel-body"></div>
     <div class="panel-foot">
@@ -76,9 +76,17 @@
   <aside id="settings-panel" class="panel hidden">
     <div class="panel-head">
       <h2 data-i18n="settings_title">Settings</h2>
-      <button id="btn-close-settings" class="close-btn" type="button">&times;</button>
+      <button id="btn-close-settings" class="close-btn" type="button"><span class="close-mark">&times;</span></button>
     </div>
     <div class="panel-body settings-body">
+      <div class="setting-row">
+        <span data-i18n="mode_label">Mode</span>
+        <div id="set-mode" class="segmented small mode-segmented">
+          <button class="seg-btn active" type="button" data-value="dice" data-i18n="mode_dice">Dice</button>
+          <button class="seg-btn" type="button" data-value="coin" data-i18n="mode_coin">Coin</button>
+          <button class="seg-btn" type="button" data-value="wheel" data-i18n="mode_wheel">Wheel</button>
+        </div>
+      </div>
       <div class="setting-row">
         <span data-i18n="language">Language</span>
         <div id="set-lang" class="segmented small">
