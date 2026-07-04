@@ -103,7 +103,31 @@ const I18N={
 let lang='zh',theme='light',rule='high',incognito=false,isRolling=false,mode='dice',_restoring=false,_pendingClearResult=false;
 let history=[],optionCount=2;
 
+// ── Constants ──
+const MAX_OPTIONS=8;
+const MAX_HISTORY=100;
+const DEBOUNCE_MS=150;
+
+// ── Debounce timer for input-triggered saveState ──
+let _saveStateTimer=null;
+function saveStateDebounced(){
+  if(_saveStateTimer)clearTimeout(_saveStateTimer);
+  _saveStateTimer=setTimeout(()=>{
+    _saveStateTimer=null;
+    saveState();
+  },DEBOUNCE_MS);
+}
+
+
 // ── State Persistence ──
+// Storage key : luckypick_state (chrome.storage.local)
+// Persisted  : mode, options, numberRange, lastResult, savedAt
+// Flow       : saveState() auto-saves on input change (debounced) and page hide;
+//               restoreState() restores on init;
+//               saveResultState() saves result after animation;
+//               clearResultState() clears result when "again" is clicked.
+// Flags       : _restoring    → prevents saveResultState() during restoration.
+//               _pendingClearResult → coordinates clearResultState() with saveState().
 function getState(){
   const opts=Array.from($$('.inp')).map(i=>i.value);
   return {
@@ -115,8 +139,12 @@ function getState(){
   };
 }
 function saveState(){
-  const fresh=getState();
   chrome.storage.local.get(['luckypick_state'],res=>{
+    if(chrome.runtime.lastError){
+      console.error('LuckyPick: failed to read state for save', chrome.runtime.lastError);
+      return;
+    }
+    const fresh=getState();
     const prev=res.luckypick_state||{};
     // If user cleared result, don't restore lastResult from storage
     if(_pendingClearResult){
@@ -125,74 +153,105 @@ function saveState(){
     }else if(prev.lastResult){
       fresh.lastResult=prev.lastResult;
     }
-    chrome.storage.local.set({luckypick_state:fresh});
+    chrome.storage.local.set({luckypick_state:fresh}, ()=>{
+      if(chrome.runtime.lastError)console.error('LuckyPick: failed to save state', chrome.runtime.lastError);
+    });
   });
 }
 function saveResultState(opts,rolls,wi,range){
   if(_restoring)return;
+  _pendingClearResult=false; // Cancel any pending clear when new result is saved
   chrome.storage.local.get(['luckypick_state'],res=>{
+    if(chrome.runtime.lastError){
+      console.error('LuckyPick: failed to read state for saveResult', chrome.runtime.lastError);
+      return;
+    }
     const st=res.luckypick_state||getState();
     st.mode=mode;
     st.options=Array.from($$('.inp')).map(i=>i.value);
     st.numberRange=mode==='number'?{min:parseInt($('#num-min').value)||1,max:parseInt($('#num-max').value)||10}:null;
     st.lastResult={mode,opts,rolls,wi,range};
     st.savedAt=Date.now();
-    chrome.storage.local.set({luckypick_state:st});
+    chrome.storage.local.set({luckypick_state:st}, ()=>{
+      if(chrome.runtime.lastError)console.error('LuckyPick: failed to save result state', chrome.runtime.lastError);
+    });
   });
 }
 function clearResultState(){
   _pendingClearResult=true;
   // Also clear from storage immediately
   chrome.storage.local.get(['luckypick_state'],res=>{
+    if(chrome.runtime.lastError){
+      console.error('LuckyPick: failed to read state for clearResult', chrome.runtime.lastError);
+      return;
+    }
     if(!res.luckypick_state)return;
     res.luckypick_state.lastResult=null;
-    chrome.storage.local.set({luckypick_state:res.luckypick_state});
+    chrome.storage.local.set({luckypick_state:res.luckypick_state}, ()=>{
+      if(chrome.runtime.lastError)console.error('LuckyPick: failed to clear result state', chrome.runtime.lastError);
+    });
   });
 }
 function restoreState(){
   chrome.storage.local.get(['luckypick_state'],res=>{
-    _restoring=true;
-    const st=res.luckypick_state;
-    if(!st){
-      // No saved state: initialize default UI
+    if(chrome.runtime.lastError){
+      console.error('LuckyPick: failed to read state', chrome.runtime.lastError);
       mode='dice';
       $$('.mt-btn').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
       $('#options-wrap').classList.remove('hidden');
       $('#number-wrap').classList.add('hidden');
       $('#btn-add-option').classList.remove('hidden');
       $('#btn-roll').textContent=t('roll_btn');
-      _restoring=false;
       return;
     }
-    // Restore mode
-    mode=st.mode||'dice';
-    $$('.mt-btn').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
-    const isCoin=mode==='coin';
-    const isNumber=mode==='number';
-    $('#options-wrap').classList.toggle('hidden',isNumber);
-    $('#number-wrap').classList.toggle('hidden',!isNumber);
-    $('#btn-add-option').classList.toggle('hidden',isCoin||isNumber);
-    const btnKey=isCoin?'coin_btn':mode==='wheel'?'wheel_btn':isNumber?'number_btn':'roll_btn';
-    $('#btn-roll').textContent=t(btnKey);
-    // Restore options
-    if(st.options&&st.options.length){
-      const ol=$('#options-list');ol.innerHTML='';optionCount=0;
-      st.options.forEach(o=>addRow(o));
-    }
-    // Restore number range
-    if(st.numberRange){$('#num-min').value=st.numberRange.min; $('#num-max').value=st.numberRange.max;}
-    // Restore result if exists
-    if(st.lastResult){
-      $('#input-section').classList.add('hidden');
-      $('#footer-lucky').classList.add('hidden');
-      const d=st.lastResult;
-      if(d.mode==='number'){
-        showNumberResult(d.range,parseInt(d.opts[0]));
-      }else{
-        showResult(d.opts,d.rolls,d.wi);
+    _restoring=true;
+    try {
+      const st=res.luckypick_state;
+      if(!st){
+        // No saved state: initialize default UI
+        mode='dice';
+        $$('.mt-btn').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
+        $('#options-wrap').classList.remove('hidden');
+        $('#number-wrap').classList.add('hidden');
+        $('#btn-add-option').classList.remove('hidden');
+        $('#btn-roll').textContent=t('roll_btn');
+        return;
       }
+      // Restore mode (validate)
+      const VALID_MODES=['dice','coin','wheel','number'];
+      mode=VALID_MODES.includes(st.mode)?st.mode:'dice';
+      $$('.mt-btn').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
+      const isCoin=mode==='coin';
+      const isNumber=mode==='number';
+      $('#options-wrap').classList.toggle('hidden',isNumber);
+      $('#number-wrap').classList.toggle('hidden',!isNumber);
+      $('#btn-add-option').classList.toggle('hidden',isCoin||isNumber);
+      const btnKey=isCoin?'coin_btn':mode==='wheel'?'wheel_btn':isNumber?'number_btn':'roll_btn';
+      $('#btn-roll').textContent=t(btnKey);
+      // Restore options (validate)
+      if(Array.isArray(st.options)){
+        const ol=$('#options-list');ol.innerHTML='';optionCount=0;
+        st.options.forEach(o=>addRow(String(o)));
+      }
+      // Restore number range (validate)
+      if(st.numberRange&&typeof st.numberRange.min==='number'&&typeof st.numberRange.max==='number'){
+        $('#num-min').value=st.numberRange.min;
+        $('#num-max').value=st.numberRange.max;
+      }
+      // Restore result if exists (validate)
+      if(st.lastResult&&Array.isArray(st.lastResult.opts)){
+        $('#input-section').classList.add('hidden');
+        $('#footer-lucky').classList.add('hidden');
+        const d=st.lastResult;
+        if(d.mode==='number'){
+          showNumberResult(d.range,parseInt(d.opts[0]||'0'));
+        }else{
+          showResult(d.opts,d.rolls||[],d.wi||0);
+        }
+      }
+    } finally {
+      _restoring=false;
     }
-    _restoring=false;
   });
 }
 
@@ -240,7 +299,7 @@ function getOptions(){return Array.from($$('.inp')).map(i=>i.value.trim()).filte
 const BC=['background:#E88BA8','background:#6BAFE0','background:#7BC89E','background:#E8BA7A','background:#C99AE8','background:#D4C96A','background:#7AB0DD','background:#E88BA8'];
 
 function addRow(text){
-  if(optionCount>=8)return;optionCount++;
+  if(optionCount>=MAX_OPTIONS)return;optionCount++;
   const l=$('#options-list'),letter=String.fromCharCode(64+optionCount);
   const r=document.createElement('div');r.className='row';
   r.innerHTML=`<span class="badge" style="${BC[(optionCount-1)%8]}">${letter}</span><input class="inp" placeholder="${t('opt_placeholder').replace('{0}',letter)}" value="${text||''}"><button class="del">×</button>`;
@@ -681,7 +740,7 @@ function saveNumberHist(range,result){
     winnerIdx:0,options:[String(result)],rolls:[],totals:[],
     createdAt:new Date().toISOString()
   });
-  if(history.length>100)history.pop();
+  if(history.length>MAX_HISTORY)history.pop();
   chrome.storage.local.set({luckypick_history:history});
 }
 
@@ -801,7 +860,7 @@ function showResult(opts,rolls,wi){
   });
 
   }
-  spawnConf();
+  if(!_restoring)spawnConf();
   if(!incognito&&mode!=='number') saveHist(opts,rolls,wi);
   updateLucky();
   saveResultState(opts,rolls,wi,null);
@@ -830,7 +889,7 @@ function showToast(msg){
 }
 
 // ── History ──
-function saveHist(o,r,w){history.unshift({id:Date.now(),type:mode,options:o,rolls:r,totals:r,winnerIdx:w,rule,createdAt:new Date().toISOString()});if(history.length>100)history.pop();chrome.storage.local.set({luckypick_history:history});}
+function saveHist(o,r,w){history.unshift({id:Date.now(),type:mode,options:o,rolls:r,totals:r,winnerIdx:w,rule,createdAt:new Date().toISOString()});if(history.length>MAX_HISTORY)history.pop();chrome.storage.local.set({luckypick_history:history});}
 function renderH(){
   const l=$('#history-list');
   if(incognito){
@@ -989,6 +1048,12 @@ function updateLucky(){
 // ── Settings Load/Save ──
 function loadSettings(cb){
   chrome.storage.local.get(['luckypick_settings','luckypick_history'],res=>{
+    if(chrome.runtime.lastError){
+      console.error('LuckyPick: failed to read settings', chrome.runtime.lastError);
+      applyTheme();applyI18n();updateLucky();
+      if(cb)cb();
+      return;
+    }
     const s=res.luckypick_settings||{};
     lang=s.lang||'zh';theme=s.theme||'light';rule=s.rule||'high';incognito=!!s.incognito;
     history=res.luckypick_history||[];
@@ -998,7 +1063,9 @@ function loadSettings(cb){
     if(cb)cb();
   });
 }
-function saveSettings(){chrome.storage.local.set({luckypick_settings:{lang,theme,rule,incognito}});}
+function saveSettings(){chrome.storage.local.set({luckypick_settings:{lang,theme,rule,incognito}}, ()=>{
+  if(chrome.runtime.lastError)console.error('LuckyPick: failed to save settings', chrome.runtime.lastError);
+});}
 
 // ── Panel ──
 function openHistoryPanel(){$('#history-panel').classList.remove('hidden');$('#panel-overlay').classList.remove('hidden');renderH();}
@@ -1108,10 +1175,10 @@ function init(){
         doAction();
     });
 
-    // Auto-save state on input changes
-    $('#options-list').addEventListener('input',e=>{if(e.target.classList.contains('inp'))saveState();});
-    $('#num-min').addEventListener('input',saveState);
-    $('#num-max').addEventListener('input',saveState);
+    // Auto-save state on input changes (debounced)
+    $('#options-list').addEventListener('input',e=>{if(e.target.classList.contains('inp'))saveStateDebounced();});
+    $('#num-min').addEventListener('input',saveStateDebounced);
+    $('#num-max').addEventListener('input',saveStateDebounced);
 
     // Restore state after settings loaded
     restoreState();
