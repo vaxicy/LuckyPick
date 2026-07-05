@@ -8,14 +8,17 @@
       mode_dice: '\u9AB0\u5B50',
       mode_coin: '\u786C\u5E01',
       mode_wheel: '\u8F6C\u76D8',
+      mode_slot: '\u8001\u864E\u673A',
       coin_heads: '\u6B63',
       coin_tails: '\u53CD',
       roll_btn_dice: '\uD83C\uDFB2 \u6447\u9AB0\u51B3\u5B9A',
       roll_btn_coin: '\uD83E\uDE99 \u629B\u786C\u5E01',
       roll_btn_wheel: '\uD83C\uDFA1 \u8F6C\u4E00\u4E0B',
+      roll_btn_slot: '\uD83C\uDFB0 \u62C9\u4E00\u4E0B',
       battle_title_dice: '\u6447\u9AB0\u4E2D...',
       battle_title_coin: '\u786C\u5E01\u7FFB\u8F6C\u4E2D...',
       battle_title_wheel: '\u8F6C\u76D8\u65CB\u8F6C\u4E2D...',
+      battle_title_slot: '\u8001\u864E\u673A\u8FD0\u884C\u4E2D...',
       winner_label: '\u7ED3\u679C',
       again: '\u518D\u6765\u4E00\u6B21',
       export_btn: '\uD83D\uDDBC \u5BFC\u51FA\u56FE\u7247',
@@ -58,14 +61,17 @@
       mode_dice: 'Dice',
       mode_coin: 'Coin',
       mode_wheel: 'Wheel',
+      mode_slot: 'Slot',
       coin_heads: 'Head',
       coin_tails: 'Tail',
       roll_btn_dice: '\uD83C\uDFB2 Roll dice',
       roll_btn_coin: '\uD83E\uDE99 Flip coin',
       roll_btn_wheel: '\uD83C\uDFA1 Spin wheel',
+      roll_btn_slot: '\uD83C\uDFB0 Spin',
       battle_title_dice: 'Rolling...',
       battle_title_coin: 'Flipping...',
       battle_title_wheel: 'Spinning...',
+      battle_title_slot: 'Spinning...',
       winner_label: 'Result',
       again: 'Again',
       export_btn: '\uD83D\uDDBC Export',
@@ -108,7 +114,7 @@
   const MAX_HISTORY = 50;
   const RULE = 'high';
   const SPEED = { fast: 0.65, normal: 1, slow: 1.45 };
-  const MODES = ['dice', 'coin', 'wheel'];
+  const MODES = ['dice', 'coin', 'wheel', 'slot'];
   const WHEEL_COLORS = ['#E88BA8', '#7C6FBE', '#6BAFE0', '#7BC89E', '#F1C56D', '#B58BE8'];
   const STORAGE = {
     settings: 'luckypick_settings',
@@ -389,6 +395,7 @@
 
     if (mode === 'coin') runCoin(options);
     else if (mode === 'wheel') runWheel(options);
+    else if (mode === 'slot') runSlot(options);
     else runDice(options);
   }
 
@@ -449,7 +456,115 @@
     animateWheel(finalRotation, () => finishResult(result));
   }
 
-  function finishResult(result) {
+
+  function runSlot(options) {
+    const idx = Math.floor(Math.random() * options.length);
+    const result = {
+      id: Date.now(),
+      mode: 'slot',
+      options,
+      winnerIndex: idx,
+      winner: options[idx],
+      isTie: false,
+      createdAt: new Date().toISOString()
+    };
+    buildSlotStage(options);
+    animateSlot(idx, options.length, () => finishResult(result));
+  }
+
+  function buildSlotStage(options) {
+    const stage = $('#dice-stage');
+    if (!stage) return;
+    stage.className = 'slot-stage';
+    stage.innerHTML = `
+      <div class="slot-window" id="slot-window">
+        <div class="slot-indicator"></div>
+        <div class="slot-reel" id="slot-reel"></div>
+      </div>
+    `;
+    const reel = $('#slot-reel');
+    if (!reel) return;
+    // 放 30 份 options 副本，保证 JS 滚动时有足够内容，不会露底
+    const COPIES = 30;
+    for (let c = 0; c < COPIES; c++) {
+      options.forEach((option, index) => {
+        const item = document.createElement('div');
+        item.className = 'slot-item';
+        item.dataset.index = index;
+        item.innerHTML = `
+          <span class="slot-num">${index + 1}</span>
+          <span class="slot-text">${escapeHtml(option)}</span>
+        `;
+        reel.appendChild(item);
+      });
+    }
+    // 初始位置：随机一个偏移，让每次看起来都不同
+    const randomStart = Math.floor(Math.random() * options.length) * 50;
+    reel.style.transform = `translateY(-${randomStart}px)`;
+  }
+
+  function animateSlot(slotIdx, total, done) {
+    const reel = $('#slot-reel');
+    if (!reel) return;
+    const duration = animDuration(1600);
+    const itemHeight = 50;
+    const start = performance.now();
+
+    // 读取当前位置（buildSlotStage 设置的随机偏移）
+    const computed = window.getComputedStyle(reel);
+    const matrix = new DOMMatrix(computed.transform);
+    const currentOffset = -matrix.m42 || 0;
+
+    // 目标：在 currentOffset 基础上，再滚 extraSpins 圈 + 停在 slotIdx
+    // 这样既有"循环滚动"感，又能精确停到目标
+    const extraSpins = 8;
+    const totalHeight = total * itemHeight;
+    const finalOffset = currentOffset + extraSpins * totalHeight + (slotIdx * itemHeight);
+
+    function tick(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = easeOutCubic(progress);
+
+      if ($('#progress-bar')) {
+        $('#progress-bar').style.width = `${progress * 100}%`;
+      }
+
+      if (reel) {
+        const offset = currentOffset + (finalOffset - currentOffset) * eased;
+        reel.style.transform = `translateY(-${offset}px)`;
+      }
+
+      if (progress < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        // 动画结束：把 reel 重置到第一份副本的对应位置（这样结果展示时 DOM 结构正确）
+        if (reel) {
+          reel.style.transform = `translateY(-${slotIdx * itemHeight}px)`;
+        }
+
+        // 闪烁 winner
+        const items = $$('#slot-reel .slot-item');
+        const winItem = items[slotIdx];
+        if (winItem) {
+          winItem.style.background = '#ffd4e3';
+          let blink = 0;
+          const timer = setInterval(() => {
+            winItem.style.background = blink % 2 === 0 ? '#ffd4e3' : '#e8dff8';
+            blink++;
+            if (blink > 5) {
+              clearInterval(timer);
+              winItem.style.background = '#ffe4ef';
+            }
+          }, 180);
+        }
+        setTimeout(done, 320);
+      }
+    }
+
+    requestAnimationFrame(tick);
+  }
+    function finishResult(result) {
     isRolling = false;
     $('#btn-roll')?.classList.remove('rolling');
     lastResult = result;
@@ -614,6 +729,7 @@
 
     if (result.mode === 'coin') renderCoinVisual(visual, result);
     else if (result.mode === 'wheel') renderWheelVisual(visual, result);
+    else if (result.mode === 'slot') renderSlotVisual(visual, result);
     else renderDiceVisual(visual, result);
 
     spawnConfetti();
@@ -654,6 +770,21 @@
       chip.style.setProperty('--chip-color', wheelColor(index));
       chip.innerHTML = `
         <div class="score-number">${String.fromCharCode(65 + index)}</div>
+        <div class="score-label">${escapeHtml(option)}</div>
+      `;
+      visual.appendChild(chip);
+    });
+  }
+
+  function renderSlotVisual(visual, result) {
+    result.options.forEach((option, index) => {
+      const chip = document.createElement('div');
+      chip.className = 'score-chip';
+      if (index === result.winnerIndex) chip.classList.add('win');
+      chip.innerHTML = `
+        <div class="score-number">
+          <span class="slot-num">${index + 1}</span>
+        </div>
         <div class="score-label">${escapeHtml(option)}</div>
       `;
       visual.appendChild(chip);
@@ -717,6 +848,7 @@
       return record.options.map((option, index) => `${option} ${rolls[index] || '-'}`).join(' / ');
     }
     if (record.mode === 'coin') return record.options.join(' / ');
+    if (record.mode === 'slot') return record.options.map((option, index) => `${index + 1}. ${option}`).join(' / ');
     return record.options.map((option, index) => `${String.fromCharCode(65 + index)} ${option}`).join(' / ');
   }
 
@@ -927,6 +1059,7 @@
   function exportChipText(result, index) {
     if ((result.mode || 'dice') === 'dice') return String((result.rolls || [])[index] || '-');
     if (result.mode === 'coin') return coinSideLabel(index);
+    if (result.mode === 'slot') return String(index + 1);
     return String.fromCharCode(65 + index);
   }
 
@@ -936,6 +1069,7 @@
 
   function exportFooter(result) {
     if ((result.mode || 'dice') === 'dice') return t('rule_export_high');
+    if (result.mode === 'slot') return t('mode_slot');
     return t(`mode_${result.mode}`);
   }
 
@@ -1047,6 +1181,7 @@
   function modeIcon(value) {
     if (value === 'coin') return '\uD83E\uDE99';
     if (value === 'wheel') return '\uD83C\uDFA1';
+    if (value === 'slot') return '\uD83C\uDFB0';
     return '\uD83C\uDFB2';
   }
 
