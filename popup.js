@@ -8,17 +8,17 @@
       mode_dice: '\u9AB0\u5B50',
       mode_coin: '\u786C\u5E01',
       mode_wheel: '\u8F6C\u76D8',
-      mode_slot: '\u8001\u864E\u673A',
+      mode_slot: '\u62BD\u7B7E',
       coin_heads: '\u6B63',
       coin_tails: '\u53CD',
       roll_btn_dice: '\uD83C\uDFB2 \u6447\u9AB0\u51B3\u5B9A',
       roll_btn_coin: '\uD83E\uDE99 \u629B\u786C\u5E01',
       roll_btn_wheel: '\uD83C\uDFA1 \u8F6C\u4E00\u4E0B',
-      roll_btn_slot: '\uD83C\uDFB0 \u62C9\u4E00\u4E0B',
+      roll_btn_slot: '\uD83C\uDF89 \u5F00\u59CB\u62BD\u7B7E',
       battle_title_dice: '\u6447\u9AB0\u4E2D...',
       battle_title_coin: '\u786C\u5E01\u7FFB\u8F6C\u4E2D...',
       battle_title_wheel: '\u8F6C\u76D8\u65CB\u8F6C\u4E2D...',
-      battle_title_slot: '\u8001\u864E\u673A\u8FD0\u884C\u4E2D...',
+      battle_title_slot: '\u968F\u673A\u62BD\u7B7E\u8FD0\u884C\u4E2D...',
       winner_label: '\u7ED3\u679C',
       again: '\u518D\u6765\u4E00\u6B21',
       export_btn: '\uD83D\uDDBC \u5BFC\u51FA\u56FE\u7247',
@@ -75,17 +75,17 @@
       mode_dice: 'Dice',
       mode_coin: 'Coin',
       mode_wheel: 'Wheel',
-      mode_slot: 'Slot',
+      mode_slot: 'Shuffle',
       coin_heads: 'Head',
       coin_tails: 'Tail',
       roll_btn_dice: '\uD83C\uDFB2 Roll dice',
       roll_btn_coin: '\uD83E\uDE99 Flip coin',
       roll_btn_wheel: '\uD83C\uDFA1 Spin wheel',
-      roll_btn_slot: '\uD83C\uDFB0 Spin',
+      roll_btn_slot: '\uD83C\uDFB2 Shuffle',
       battle_title_dice: 'Rolling...',
       battle_title_coin: 'Flipping...',
       battle_title_wheel: 'Spinning...',
-      battle_title_slot: 'Spinning...',
+      battle_title_slot: 'Shuffling...',
       winner_label: 'Result',
       again: 'Again',
       export_btn: '\uD83D\uDDBC Export',
@@ -355,7 +355,7 @@
       tickOsc.stop(now + 0.05);
     },
 
-    // 老虎机音效：节奏感咔咔声
+    // 随机抽签音效：节奏感咔咔声
     playSlotSound(now) {
       const ctx = this.context;
       const osc = ctx.createOscillator();
@@ -1109,7 +1109,7 @@
           'dice': ['🎲', '🎯', '⭐'],
           'coin': ['🪙', '✨', '💫'],
           'wheel': ['🎡', '🎯', '🌟'],
-          'slot': ['🎰', '🎊', '💎']
+          'slot': ['🎲', '✨', '🎋']
         };
         const modeEmojis = emojis[result.mode] || emojis['dice'];
         character.textContent = modeEmojis[Math.floor(Math.random() * modeEmojis.length)];
@@ -1393,7 +1393,7 @@
       return;
     }
     list.innerHTML = '';
-    const MODE_ICONS = { dice: '🎲', coin: '🪙', wheel: '🎡', slot: '🎰' };
+    const MODE_ICONS = { dice: '🎲', coin: '🪙', wheel: '🎡', slot: '🎲' };
     favorites.forEach((fav) => {
       const item = document.createElement('div');
       item.className = 'favorite-item';
@@ -1769,7 +1769,7 @@
   function modeIcon(value) {
     if (value === 'coin') return '\uD83E\uDE99';
     if (value === 'wheel') return '\uD83C\uDFA1';
-    if (value === 'slot') return '\uD83C\uDFB0';
+    if (value === 'slot') return '\uD83C\uDFB2';
     return '\uD83C\uDFB2';
   }
 

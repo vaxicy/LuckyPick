@@ -23,8 +23,10 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["icons/赞赏码.png", "donate.html"],
+      "resources": ["赞赏码.png", "donate.html"],
       "matches": ["<all_urls>"]
     }
-  ]
+  ],
+  "homepage_url": "https://github.com",
+  "offline_enabled": false
 }

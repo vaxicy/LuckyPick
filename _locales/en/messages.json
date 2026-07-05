@@ -4,7 +4,7 @@
     "description": "Extension name"
   },
   "extension_description": {
-    "message": "Struggling to choose? Let Lucky Pick help you decide randomly! Supports dice rolling, coin flipping, and lucky wheel.",
+    "message": "Struggling to choose? Let Lucky Pick help you decide randomly! Supports dice rolling, coin flipping, lucky wheel, and shuffle mode.",
     "description": "Extension description"
   }
 }
