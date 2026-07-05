@@ -23,8 +23,9 @@
       again: '\u518D\u6765\u4E00\u6B21',
       export_btn: '\uD83D\uDDBC \u5BFC\u51FA\u56FE\u7247',
       history_title: '\uD83D\uDCCB \u5386\u53F2\u8BB0\u5F55',
-      history_empty: '\u6682\u65E0\u8BB0\u5F55',
-      history_incognito: '\u65E0\u75D5\u6A21\u5F0F\u4E0B\u4E0D\u4FDD\u5B58\u8BB0\u5F55',
+      history_empty: '暂无记录',
+      history_empty_hint: '点击上方"再来一次"开始抽取',
+      history_incognito: '无痕模式下不保存记录',
       clear_history: '\u6E05\u7A7A\u5386\u53F2',
       exported: '\u56FE\u7247\u5DF2\u5BFC\u51FA',
       min_options: '\u81F3\u5C11\u9700\u8981 2 \u4E2A\u9009\u9879',
@@ -56,7 +57,14 @@
       confirm_ok: '\u786E\u5B9A',
       confirm_clear: '\u6E05\u7A7A\u6240\u6709\u5386\u53F2\u8BB0\u5F55\uFF1F',
       load_history: '\u52A0\u8F7D\u8FD9\u6761\u8BB0\u5F55\uFF1F',
-      rule_export_high: '\u5927\u8005\u80DC'
+      rule_export_high: '大者胜',
+      favorites_tip: '收藏',
+      favorites_title: '收藏夹',
+      save_favorite: '⭐ 保存当前选项',
+      save_favorite_name: '请输入收藏名称',
+      favorites_empty: '暂无收藏',
+      load_favorite: '加载此收藏？',
+      delete_favorite: '删除此收藏？'
     },
     en: {
       app_name: 'LuckyPick',
@@ -80,6 +88,7 @@
       export_btn: '\uD83D\uDDBC Export',
       history_title: '\uD83D\uDCCB History',
       history_empty: 'No records',
+      history_empty_hint: 'Click "Again" to start',
       history_incognito: 'Incognito mode: no history saved',
       clear_history: 'Clear history',
       exported: 'Image exported',
@@ -111,7 +120,14 @@
       confirm_ok: 'OK',
       confirm_clear: 'Clear all history?',
       load_history: 'Load this record?',
-      rule_export_high: 'High wins'
+      rule_export_high: 'High wins',
+      favorites_tip: 'Favorites',
+      favorites_title: 'Favorites',
+      save_favorite: '⭐ Save current options',
+      save_favorite_name: 'Enter favorite name',
+      favorites_empty: 'No favorites',
+      load_favorite: 'Load this favorite?',
+      delete_favorite: 'Delete this favorite?'
     }
   };
 
@@ -124,7 +140,8 @@
   const STORAGE = {
     settings: 'luckypick_settings',
     history: 'luckypick_history',
-    state: 'luckypick_state'
+    state: 'luckypick_state',
+    favorites: 'luckypick_favorites'
   };
 
   // 音效系统
@@ -431,6 +448,7 @@
       restoreState();
       applyModeUI();
       AudioSystem.init();
+      loadFavorites();
     });
   }
 
@@ -456,6 +474,9 @@
     on('#btn-close-settings', 'click', closePanels);
     on('#panel-overlay', 'click', closePanels);
     on('#btn-clear-history', 'click', clearHistory);
+    on('#btn-save-favorite', 'click', saveFavorite);
+    on('#btn-favorites', 'click', openFavoritesPanel);
+    on('#btn-close-favorites', 'click', closeFavoritesPanel);
 
     $$('#set-mode .seg-btn').forEach((button) => {
       button.addEventListener('click', () => {
@@ -535,12 +556,11 @@
         });
       }
     });
-    on('#options-list', 'keydown', (event) => {
-      if (event.key === 'Enter') doPick();
-    });
-
     document.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter' && event.ctrlKey && !isRolling) doPick();
+      if (event.key === 'Enter' && !event.ctrlKey && !event.altKey && !event.shiftKey && !isRolling) {
+        if (event.target.classList.contains('option-input')) return;
+        doPick();
+      }
       if (event.key === 'Escape') closePanels();
     });
     document.addEventListener('visibilitychange', () => {
@@ -577,6 +597,7 @@
     const addButton = $('#btn-add-option');
     if (addButton) addButton.classList.toggle('hidden', mode === 'coin');
     reindexRows();
+    updateRollButtonState();
   }
 
   function applyI18n() {
@@ -632,6 +653,7 @@
   function bindRows() {
     $$('.option-row').forEach(bindRow);
     reindexRows();
+    updateRollButtonState();
   }
 
   function bindRow(row) {
@@ -643,6 +665,7 @@
       optionCount -= 1;
       reindexRows();
       saveStateDebounced();
+      updateRollButtonState();
     });
   }
 
@@ -661,6 +684,7 @@
     list.appendChild(row);
     bindRow(row);
     reindexRows();
+    updateRollButtonState();
   }
 
   function reindexRows() {
@@ -693,6 +717,17 @@
     return values.slice(0, limit).filter(Boolean);
   }
 
+  function updateRollButtonState() {
+    const options = getModeOptions();
+    const rollButton = $('#btn-roll');
+    if (rollButton) {
+      const disabled = options.length < 2;
+      rollButton.disabled = disabled;
+      rollButton.title = disabled ? t('min_options') : '';
+      rollButton.classList.toggle('disabled', disabled);
+    }
+  }
+  
   function doPick() {
     if (isRolling) return;
     const options = getModeOptions();
@@ -1187,8 +1222,9 @@
     if ($('#btn-clear-history')) $('#btn-clear-history').style.display = '';
     if (!history.length) {
       list.innerHTML = `<div class="empty-state">
+        <div class="empty-character">🎲</div>
         <div style="font-size:13px;margin-bottom:4px;">${t('history_empty')}</div>
-        <div style="font-size:11px;color:var(--muted);">${lang === 'zh' ? '点击上方"再来一次"开始抽取' : 'Click "Again" to start'}</div>
+        <div style="font-size:11px;color:var(--muted);">${t('history_empty_hint')}</div>
       </div>`;
       return;
     }
@@ -1260,6 +1296,141 @@
     });
   }
 
+  /* ===== 收藏功能 ===== */
+  let favorites = [];
+
+  function loadFavorites(done) {
+    chrome.storage.local.get([STORAGE.favorites], (result) => {
+      favorites = Array.isArray(result[STORAGE.favorites]) ? result[STORAGE.favorites] : [];
+      if (done) done();
+    });
+  }
+
+  function saveFavorite() {
+    const options = getAllOptions().filter(Boolean);
+    if (options.length < 2) {
+      showToast(t('min_options'));
+      return;
+    }
+    const overlay = $('#fav-name-overlay');
+    const dialog = $('#fav-name-dialog');
+    const input = $('#fav-name-input');
+    if (!dialog || !input) return;
+    input.value = '';
+    overlay?.classList.remove('hidden');
+    dialog.classList.remove('hidden');
+    setTimeout(() => input.focus(), 100);
+
+    const finish = (ok) => {
+      overlay?.classList.add('hidden');
+      dialog.classList.add('hidden');
+      if (!ok || !input.value.trim()) return;
+      const name = input.value.trim();
+      const id = Date.now();
+      favorites.unshift({ id, name, options: getAllOptions().filter(Boolean), mode });
+      chrome.storage.local.set({ [STORAGE.favorites]: favorites }, () => {
+        renderFavorites();
+        showToast(lang === 'zh' ? '已保存到收藏' : 'Saved to favorites');
+      });
+    };
+
+    const okBtn = $('#fav-name-ok');
+    const cancelBtn = $('#fav-name-cancel');
+    const overlayNode = overlay;
+    if (okBtn) okBtn.onclick = () => finish(true);
+    if (cancelBtn) cancelBtn.onclick = () => finish(false);
+    if (overlayNode) overlayNode.onclick = () => finish(false);
+    input.onkeydown = (e) => { if (e.key === 'Enter') finish(true); if (e.key === 'Escape') finish(false); };
+  }
+
+  function deleteFavorite(id) {
+    showConfirm(t('delete_favorite')).then((ok) => {
+      if (!ok) return;
+      favorites = favorites.filter(f => f.id !== id);
+      chrome.storage.local.set({ [STORAGE.favorites]: favorites }, renderFavorites);
+    });
+  }
+
+  function loadFavorite(fav) {
+    showConfirm(t('load_favorite')).then((ok) => {
+      if (!ok) return;
+      const list = $('#options-list');
+      if (!list) return;
+      list.innerHTML = '';
+      optionCount = 0;
+      (fav.options || []).forEach((option) => addRow(option));
+      while (optionCount < 2) addRow('');
+      mode = MODES.includes(fav.mode) ? fav.mode : 'dice';
+      applyModeUI();
+      renderSettings();
+      closePanels();
+      resetToInput();
+      saveSettings();
+      saveStateDebounced();
+    });
+  }
+
+  function renderFavorites() {
+    const list = $('#favorites-list');
+    if (!list) return;
+    if (!favorites.length) {
+      list.innerHTML = `
+        <div class="favorites-empty">
+          <div class="fav-empty-character">⭐</div>
+          <div class="favorites-empty-title">${t('favorites_empty')}</div>
+          <div class="favorites-empty-hint">${lang === 'zh' ? '点击上方按钮保存当前选项组' : 'Tap the button above to save current options'}</div>
+        </div>`;
+      return;
+    }
+    list.innerHTML = '';
+    const MODE_ICONS = { dice: '🎲', coin: '🪙', wheel: '🎡', slot: '🎰' };
+    favorites.forEach((fav) => {
+      const item = document.createElement('div');
+      item.className = 'favorite-item';
+      const modeIcon = MODE_ICONS[fav.mode] || '🎲';
+      const optCount = (fav.options || []).length;
+      item.innerHTML = `
+        <div class="fav-mode-badge">${modeIcon}</div>
+        <div class="fav-item-text">
+          <div class="favorite-item-name">${escapeHtml(fav.name)}</div>
+          <div class="favorite-item-options">${(fav.options || []).slice(0, 3).map(o => escapeHtml(o)).join(', ')}${optCount > 3 ? '...' : ''}</div>
+        </div>
+        <button class="favorite-item-delete" type="button" title="${lang === 'zh' ? '删除' : 'Delete'}">×</button>
+      `;
+      item.addEventListener('click', (e) => {
+        if (e.target.classList.contains('favorite-item-delete')) return;
+        loadFavorite(fav);
+      });
+      const deleteBtn = item.querySelector('.favorite-item-delete');
+      if (deleteBtn) {
+        deleteBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          deleteFavorite(fav.id);
+        });
+      }
+      list.appendChild(item);
+    });
+  }
+
+  function openFavoritesPanel() {
+    closeFavoritesNameDialog();
+    loadFavorites(() => {
+      renderFavorites();
+      $('#favorites-panel')?.classList.remove('hidden');
+      $('#panel-overlay')?.classList.remove('hidden');
+    });
+  }
+
+  function closeFavoritesPanel() {
+    $('#favorites-panel')?.classList.add('hidden');
+    $('#panel-overlay')?.classList.add('hidden');
+  }
+
+  function closeFavoritesNameDialog() {
+    $('#fav-name-overlay')?.classList.add('hidden');
+    $('#fav-name-dialog')?.classList.add('hidden');
+  }
+
   function openHistoryPanel() {
     renderHistory();
     $('#history-panel')?.classList.remove('hidden');
@@ -1275,7 +1446,9 @@
   function closePanels() {
     $('#history-panel')?.classList.add('hidden');
     $('#settings-panel')?.classList.add('hidden');
+    $('#favorites-panel')?.classList.add('hidden');
     $('#panel-overlay')?.classList.add('hidden');
+    closeFavoritesNameDialog();
   }
 
   function renderSettings() {

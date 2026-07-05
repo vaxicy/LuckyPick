@@ -13,6 +13,7 @@
       <span id="app-name">LuckyPick</span>
     </div>
     <div class="top-actions">
+      <button id="btn-favorites" class="icon-btn" type="button" data-i18n-title="favorites_tip" title="Favorites">&#11088;</button>
       <button id="btn-history" class="icon-btn" type="button" data-i18n-title="history_tip" title="History">&#128203;</button>
       <button id="btn-settings" class="icon-btn" type="button" data-i18n-title="settings_tip" title="Settings">&#9881;</button>
     </div>
@@ -124,6 +125,28 @@
       </div>
     </div>
   </aside>
+
+  <aside id="favorites-panel" class="panel hidden">
+    <div class="panel-head">
+      <h2 data-i18n="favorites_title">&#11088; Favorites</h2>
+      <button id="btn-close-favorites" class="close-btn" type="button"><span class="close-mark">&times;</span></button>
+    </div>
+    <div class="panel-body">
+      <button id="btn-save-favorite" class="save-fav-btn" type="button" data-i18n="save_favorite">&#11088; <span data-i18n="save_favorite">Save current options</span></button>
+      <div id="favorites-list" class="favorites-list"></div>
+    </div>
+  </aside>
+
+  <div id="fav-name-overlay" class="overlay hidden"></div>
+  <div id="fav-name-dialog" class="fav-name-dialog hidden">
+    <div class="fav-name-icon">&#11088;</div>
+    <div class="fav-name-title" data-i18n="save_favorite_name">Name this favorite</div>
+    <input id="fav-name-input" class="fav-name-input" type="text" data-i18n-placeholder="save_favorite_name" placeholder="e.g. Lunch options">
+    <div class="fav-name-actions">
+      <button id="fav-name-cancel" class="confirm-btn" type="button" data-i18n="confirm_cancel">Cancel</button>
+      <button id="fav-name-ok" class="confirm-btn ok" type="button" data-i18n="confirm_ok">Save</button>
+    </div>
+  </div>
 
   <div id="confirm-overlay" class="overlay hidden"></div>
   <div id="confirm-dialog" class="confirm-dialog hidden">
