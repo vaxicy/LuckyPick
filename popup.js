@@ -64,7 +64,10 @@
       save_favorite_name: '请输入收藏名称',
       favorites_empty: '暂无收藏',
       load_favorite: '加载此收藏？',
-      delete_favorite: '删除此收藏？'
+      delete_favorite: '删除此收藏？',
+      donate_text: '如果觉得好用，请我喝杯咖啡吧！',
+      donate_wechat_btn: '微信赞赏',
+      donate_paypal_btn: 'PayPal'
     },
     en: {
       app_name: 'LuckyPick',
@@ -127,7 +130,10 @@
       save_favorite_name: 'Enter favorite name',
       favorites_empty: 'No favorites',
       load_favorite: 'Load this favorite?',
-      delete_favorite: 'Delete this favorite?'
+      delete_favorite: 'Delete this favorite?',
+      donate_text: 'If you find it helpful,\nconsider buying me a coffee!',
+      donate_wechat_btn: 'WeChat',
+      donate_paypal_btn: 'PayPal'
     }
   };
 
@@ -477,6 +483,10 @@
     on('#btn-save-favorite', 'click', saveFavorite);
     on('#btn-favorites', 'click', openFavoritesPanel);
     on('#btn-close-favorites', 'click', closeFavoritesPanel);
+    on('#btn-donate-wechat', 'click', () => {
+      const url = chrome.runtime.getURL('donate.html');
+      chrome.tabs.create({ url });
+    });
 
     $$('#set-mode .seg-btn').forEach((button) => {
       button.addEventListener('click', () => {
