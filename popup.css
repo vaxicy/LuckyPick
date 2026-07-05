@@ -659,15 +659,19 @@ button {
   text-align: center;
   padding: 0;
   animation: rise .24s ease-out both;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* 结果页可爱角色 */
 .result-character {
-  font-size: 48px;
+  font-size: 44px;
   line-height: 1;
   margin-bottom: 8px;
   animation: characterBounce .6s cubic-bezier(.34,1.56,.64,1) both;
-  display: inline-block;
+  display: block;
+  text-align: center;
 }
 
 @keyframes characterBounce {
@@ -677,11 +681,11 @@ button {
 }
 
 .result-card {
-  display: inline-block;
-  min-width: 178px;
+  display: block;
+  min-width: 200px;
   max-width: 100%;
-  margin-bottom: 6px;
-  padding: 8px 13px;
+  margin: 0 auto 6px;
+  padding: 8px 14px;
   border: 1.5px solid rgba(232, 139, 168, .28);
   border-radius: var(--r);
   background: var(--win-bg);
@@ -712,7 +716,7 @@ button {
 }
 
 .result-kicker {
-  margin-bottom: 3px;
+  margin-bottom: 2px;
   color: var(--accent);
   font-size: 10px;
   font-weight: 900;
@@ -722,7 +726,7 @@ button {
 
 .result-winner {
   color: var(--accent-2);
-  font-size: 19px;
+  font-size: 18px;
   font-weight: 950;
   line-height: 1.18;
   word-break: break-word;
@@ -741,7 +745,7 @@ button {
   justify-content: center;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 7px;
+  margin-bottom: 6px;
   padding: 5px;
   border: 1px solid var(--border);
   border-radius: var(--r);
@@ -749,8 +753,8 @@ button {
 }
 
 .score-chip {
-  min-width: 40px;
-  padding: 4px 6px;
+  min-width: 38px;
+  padding: 4px 7px;
   border-radius: 11px;
   background: var(--input);
 }
@@ -763,7 +767,7 @@ button {
 
 .score-number {
   color: var(--accent);
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 950;
   line-height: 1;
 }
@@ -793,7 +797,7 @@ button {
 .score-label {
   max-width: 62px;
   overflow: hidden;
-  margin-top: 3px;
+  margin-top: 2px;
   color: var(--sub);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -823,12 +827,12 @@ button {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 7px;
-  margin-top: 8px;
+  margin-top: 7px;
 }
 
 /* 结果页时间戳 */
 .result-timestamp {
-  margin-top: 6px;
+  margin-top: 5px;
   color: var(--muted);
   font-size: 10.5px;
   text-align: center;
@@ -836,11 +840,11 @@ button {
 
 .result-actions .action-btn {
   font-size: 12px;
-  min-height: 34px;
+  min-height: 32px;
 }
 
 .action-btn {
-  min-height: 34px;
+  min-height: 32px;
   border: 1.5px solid var(--border);
   border-radius: var(--pill);
   color: var(--text);
