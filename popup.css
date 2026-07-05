@@ -996,60 +996,82 @@ button {
 }
 
 .slot-stage {
-  min-height: 100px;
+  min-height: 110px;
   display: grid;
   place-items: center;
-  padding: 4px 0 6px;
+  padding: 8px 0 10px;
+  position: relative;
 }
 
 .slot-window {
-  width: 180px;
-  height: 50px;
+  width: 200px;
+  height: 54px;
   overflow: hidden;
-  border-radius: 12px;
-  border: 2.5px solid #b0a8cc;
-  background: #f0eef6;
+  border-radius: 14px;
+  border: 2.5px solid #9d94c4;
+  background: linear-gradient(180deg, #f5f3fa 0%, #ebe8f5 100%);
   position: relative;
   box-shadow:
-    0 0 0 1.5px rgba(180,170,210,.35),
-    inset 3px 3px 8px rgba(0,0,0,.08),
-    inset -3px -3px 8px rgba(0,0,0,.05);
+    0 0 0 1.5px rgba(157,148,196,.45),
+    0 4px 12px rgba(60,50,110,.18),
+    inset 0 2px 4px rgba(255,255,255,.65),
+    inset 0 -2px 4px rgba(0,0,0,.06),
+    inset 3px 3px 8px rgba(0,0,0,.06),
+    inset -3px -3px 8px rgba(0,0,0,.04);
 }
 
-/* 中间高亮指示器 */
-.slot-indicator {
+/* 窗口顶部高光条 */
+.slot-window::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 8px;
+  right: 8px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.85), transparent);
+  border-radius: 0 0 2px 2px;
+  z-index: 15;
+}
+
+/* 窗口底部阴影条 */
+.slot-window::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 8px;
+  right: 8px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(0,0,0,.08), transparent);
+  border-radius: 2px 2px 0 0;
+  z-index: 15;
+}
+
+/* 上下两条发光指示线 */
+.slot-indicator-top,
+.slot-indicator-bottom {
   position: absolute;
   left: 4px;
   right: 4px;
-  top: 50%;
-  transform: translateY(-50%);
-  height: 46px;
-  border-radius: 8px;
-  background: rgba(255,255,255,.45);
-  border: 1.5px solid rgba(232,139,168,.30);
+  height: 2.5px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-2), transparent);
+  box-shadow: 0 0 8px rgba(232,139,168,.45);
   pointer-events: none;
   z-index: 10;
+  animation: indicatorPulse 1.2s ease-in-out infinite;
+}
+.slot-indicator-top {
+  top: 50%;
+  transform: translateY(-27px);
+}
+.slot-indicator-bottom {
+  top: 50%;
+  transform: translateY(25px);
 }
 
-/* 左右三角箭头 */
-.slot-indicator::before,
-.slot-indicator::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 0;
-  height: 0;
-  border-top: 7px solid transparent;
-  border-bottom: 7px solid transparent;
-}
-.slot-indicator::before {
-  left: -4px;
-  border-left: 8px solid var(--accent-2);
-}
-.slot-indicator::after {
-  right: -4px;
-  border-right: 8px solid var(--accent-2);
+@keyframes indicatorPulse {
+  0%, 100% { opacity: .7; }
+  50% { opacity: 1; }
 }
 
 .slot-reel {
@@ -1058,10 +1080,16 @@ button {
   align-items: center;
   width: 100%;
   will-change: transform;
+  filter: blur(0);
+  transition: filter .3s ease;
+}
+
+.slot-reel.spinning {
+  filter: blur(0.5px);
 }
 
 .slot-item {
-  height: 50px;
+  height: 54px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1069,50 +1097,128 @@ button {
   font-weight: 900;
   color: #333366;
   width: 100%;
-  gap: 6px;
+  gap: 8px;
+  border-radius: 6px;
+  margin: 0 2px;
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1), background .2s ease;
 }
 
-/* 彩色斑马纹 - 使用实色背景确保可见 */
-.slot-item:nth-child(4n+1) { background: #fff0f6; }
-.slot-item:nth-child(4n+2) { background: #f0ecfa; }
-.slot-item:nth-child(4n+3) { background: #edf6fc; }
-.slot-item:nth-child(4n+4) { background: #eff9f2; }
+/* 获胜项目动画 */
+.slot-item.winner {
+  animation: slotWin 0.5s cubic-bezier(.34,1.56,.64,1) both;
+  z-index: 5;
+}
+
+@keyframes slotWin {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.08); }
+  70% { transform: scale(0.98); }
+  100% { transform: scale(1.03); }
+}
+
+/* 彩色斑马纹 - 增强对比度 */
+.slot-item:nth-child(8n+1),
+.slot-item:nth-child(8n+2) { background: linear-gradient(135deg, #fff0f6, #ffe8f0); }
+.slot-item:nth-child(8n+3),
+.slot-item:nth-child(8n+4) { background: linear-gradient(135deg, #f0ecfa, #e8e4f8); }
+.slot-item:nth-child(8n+5),
+.slot-item:nth-child(8n+6) { background: linear-gradient(135deg, #edf6fc, #e4f0fa); }
+.slot-item:nth-child(8n+7),
+.slot-item:nth-child(8n+8) { background: linear-gradient(135deg, #eff9f2, #e6f5eb); }
 
 /* 深色模式适配 */
 [data-theme="dark"] .slot-window {
-  background: #1e1c2e;
+  background: linear-gradient(180deg, #242135 0%, #1e1c2e 100%);
+  border-color: #5a5580;
 }
+
 [data-theme="dark"] .slot-item {
   color: #eee9ff;
 }
-[data-theme="dark"] .slot-item:nth-child(4n+1) { background: rgba(232,139,168,.12); }
-[data-theme="dark"] .slot-item:nth-child(4n+2) { background: rgba(124,111,190,.12); }
-[data-theme="dark"] .slot-item:nth-child(4n+3) { background: rgba(107,175,224,.12); }
-[data-theme="dark"] .slot-item:nth-child(4n+4) { background: rgba(123,200,158,.12); }
-[data-theme="dark"] .slot-indicator {
-  background: rgba(36,33,53,.55);
-  border-color: rgba(232,139,168,.25);
+
+[data-theme="dark"] .slot-item:nth-child(8n+1),
+[data-theme="dark"] .slot-item:nth-child(8n+2) { background: linear-gradient(135deg, rgba(232,139,168,.15), rgba(232,139,168,.08)); }
+[data-theme="dark"] .slot-item:nth-child(8n+3),
+[data-theme="dark"] .slot-item:nth-child(8n+4) { background: linear-gradient(135deg, rgba(124,111,190,.15), rgba(124,111,190,.08)); }
+[data-theme="dark"] .slot-item:nth-child(8n+5),
+[data-theme="dark"] .slot-item:nth-child(8n+6) { background: linear-gradient(135deg, rgba(107,175,224,.15), rgba(107,175,224,.08)); }
+[data-theme="dark"] .slot-item:nth-child(8n+7),
+[data-theme="dark"] .slot-item:nth-child(8n+8) { background: linear-gradient(135deg, rgba(123,200,158,.15), rgba(123,200,158,.08)); }
+
+[data-theme="dark"] .slot-indicator-top,
+[data-theme="dark"] .slot-indicator-bottom {
+  background: linear-gradient(90deg, transparent, rgba(232,139,168,.75), transparent);
+  box-shadow: 0 0 10px rgba(232,139,168,.55);
 }
 
 .slot-num {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
-  background: var(--accent);
+  background: linear-gradient(145deg, #8d7be0, var(--accent));
   color: #fff;
   font-size: 13px;
   font-weight: 900;
   flex-shrink: 0;
   line-height: 1;
+  box-shadow: 0 2px 6px rgba(124,111,190,.28);
 }
 
 .slot-text {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 130px;
+  max-width: 140px;
+  font-weight: 800;
+}
+
+/* 拉杆按钮样式 */
+.slot-lever {
+  position: absolute;
+  right: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 40px;
+  cursor: pointer;
+  z-index: 20;
+}
+
+.slot-lever::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 28px;
+  background: linear-gradient(180deg, #c0c0c0, #808080);
+  border-radius: 2px;
+  box-shadow: 1px 1px 3px rgba(0,0,0,.2);
+}
+
+.slot-lever::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ff6b6b, #c0392b);
+  box-shadow: 0 2px 6px rgba(192,57,43,.35);
+}
+
+.slot-lever.pulled::before {
+  height: 22px;
+  top: 6px;
+}
+
+.slot-lever.pulled::after {
+  bottom: 6px;
 }
 

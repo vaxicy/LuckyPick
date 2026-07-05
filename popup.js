@@ -478,7 +478,8 @@
     stage.className = 'slot-stage';
     stage.innerHTML = `
       <div class="slot-window" id="slot-window">
-        <div class="slot-indicator"></div>
+        <div class="slot-indicator-top"></div>
+        <div class="slot-indicator-bottom"></div>
         <div class="slot-reel" id="slot-reel"></div>
       </div>
     `;
@@ -499,7 +500,7 @@
       });
     }
     // 初始位置：随机一个偏移，让每次看起来都不同
-    const randomStart = Math.floor(Math.random() * options.length) * 50;
+    const randomStart = Math.floor(Math.random() * options.length) * 54;
     reel.style.transform = `translateY(-${randomStart}px)`;
   }
 
@@ -507,8 +508,11 @@
     const reel = $('#slot-reel');
     if (!reel) return;
     const duration = animDuration(1600);
-    const itemHeight = 50;
+    const itemHeight = 54;
     const start = performance.now();
+
+    // 添加滚动模糊效果
+    reel.classList.add('spinning');
 
     // 读取当前位置（buildSlotStage 设置的随机偏移）
     const computed = window.getComputedStyle(reel);
@@ -538,16 +542,21 @@
       if (progress < 1) {
         requestAnimationFrame(tick);
       } else {
+        // 移除滚动模糊效果
+        reel.classList.remove('spinning');
+
         // 动画结束：把 reel 重置到第一份副本的对应位置（这样结果展示时 DOM 结构正确）
         if (reel) {
           reel.style.transform = `translateY(-${slotIdx * itemHeight}px)`;
         }
 
-        // 闪烁 winner
+        // 获胜项目添加 winner 类和动画
         const items = $$('#slot-reel .slot-item');
         const winItem = items[slotIdx];
         if (winItem) {
-          winItem.style.background = '#ffd4e3';
+          winItem.classList.add('winner');
+          
+          // 闪烁效果
           let blink = 0;
           const timer = setInterval(() => {
             winItem.style.background = blink % 2 === 0 ? '#ffd4e3' : '#e8dff8';
@@ -558,7 +567,7 @@
             }
           }, 180);
         }
-        setTimeout(done, 320);
+        setTimeout(done, 420);
       }
     }
 
