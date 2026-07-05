@@ -1120,6 +1120,25 @@ button {
   background: var(--accent);
 }
 
+/* 按钮涟漪效果 */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .35);
+  transform: scale(0);
+  animation: rippleAnim .5s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes rippleAnim {
+  to { transform: scale(3.5); opacity: 0; }
+}
+
+.roll-btn, .action-btn, .add-btn, .text-btn, .confirm-btn {
+  position: relative;
+  overflow: hidden;
+}
+
 .confetti-piece {
   position: absolute;
   top: -8px;

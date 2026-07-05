@@ -522,6 +522,14 @@
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'hidden') saveState();
     });
+
+    // 按钮涟漪效果
+    document.addEventListener('click', (event) => {
+      const button = event.target.closest('button');
+      if (button && !button.disabled && !button.classList.contains('delete-btn')) {
+        createRipple(event);
+      }
+    });
   }
 
   function on(selector, event, handler) {
@@ -1139,7 +1147,10 @@
     }
     if ($('#btn-clear-history')) $('#btn-clear-history').style.display = '';
     if (!history.length) {
-      list.innerHTML = `<div class="empty-state">${t('history_empty')}</div>`;
+      list.innerHTML = `<div class="empty-state">
+        <div style="font-size:13px;margin-bottom:4px;">${t('history_empty')}</div>
+        <div style="font-size:11px;color:var(--muted);">${lang === 'zh' ? '点击上方"再来一次"开始抽取' : 'Click "Again" to start'}</div>
+      </div>`;
       return;
     }
 
@@ -1449,15 +1460,18 @@
     const container = $('#confetti-container');
     if (!container) return;
     container.innerHTML = '';
-    const colors = ['#E88BA8', '#7C6FBE', '#6BAFE0', '#7BC89E', '#E8BA7A'];
-    for (let i = 0; i < 18; i += 1) {
+    const colors = ['#E88BA8', '#7C6FBE', '#6BAFE0', '#7BC89E', '#E8BA7A', '#FF6B6B', '#FFD93D', '#6BCB77', '#4D96FF', '#FF6B9D'];
+    const shapes = ['50%', '2px', '1px'];
+    for (let i = 0; i < 22; i += 1) {
       const piece = document.createElement('div');
       piece.className = 'confetti-piece';
       piece.style.left = `${Math.random() * 100}%`;
       piece.style.background = colors[Math.floor(Math.random() * colors.length)];
-      piece.style.animationDelay = `${Math.random() * 0.22}s`;
-      piece.style.animationDuration = `${0.65 + Math.random() * 0.55}s`;
-      piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+      piece.style.animationDelay = `${Math.random() * 0.3}s`;
+      piece.style.animationDuration = `${0.6 + Math.random() * 0.6}s`;
+      piece.style.borderRadius = shapes[Math.floor(Math.random() * shapes.length)];
+      piece.style.width = `${4 + Math.random() * 4}px`;
+      piece.style.height = `${4 + Math.random() * 4}px`;
       container.appendChild(piece);
     }
     setTimeout(() => { container.innerHTML = ''; }, 1500);
@@ -1490,6 +1504,22 @@
     toast.textContent = message;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 1500);
+  }
+
+  function createRipple(event) {
+    const button = event.currentTarget;
+    if (!button || button.disabled) return;
+    const rect = button.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    const x = (event.clientX || event.touches?.[0]?.clientX || rect.left + rect.width / 2) - rect.left - size / 2;
+    const y = (event.clientY || event.touches?.[0]?.clientY || rect.top + rect.height / 2) - rect.top - size / 2;
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple';
+    ripple.style.width = ripple.style.height = `${size}px`;
+    ripple.style.left = `${x}px`;
+    ripple.style.top = `${y}px`;
+    button.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 500);
   }
 
   function animDuration(ms) {
