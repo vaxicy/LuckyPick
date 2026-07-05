@@ -182,6 +182,12 @@ button {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-bg), 0 5px 14px rgba(65, 55, 120, .08);
   transform: none;
+  animation: inputFocus 1.5s ease-in-out infinite;
+}
+
+@keyframes inputFocus {
+  0%, 100% { box-shadow: 0 0 0 3px var(--accent-bg), 0 5px 14px rgba(65, 55, 120, .08); }
+  50% { box-shadow: 0 0 0 4px var(--accent-bg), 0 5px 18px rgba(196, 122, 176, .15); }
 }
 
 .badge {
@@ -317,11 +323,31 @@ button {
   font-size: 15px;
   font-weight: 900;
   transition: transform .16s ease, box-shadow .16s ease, opacity .16s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .roll-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 14px 26px rgba(196, 122, 176, .30);
+  box-shadow: 0 14px 26px rgba(196, 122, 176, .30), 0 0 20px rgba(196, 122, 176, .15);
+}
+
+.roll-btn:hover::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(135deg, rgba(255,255,255,.3), transparent);
+  border-radius: 17px;
+  z-index: -1;
+  animation: buttonGlow .6s ease-in-out infinite alternate;
+}
+
+@keyframes buttonGlow {
+  from { opacity: .5; }
+  to { opacity: 1; }
 }
 
 .roll-btn:active {
@@ -488,6 +514,24 @@ button {
   height: 100%;
   border-radius: var(--pill);
   background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.4), transparent);
+  animation: progressShine 1.5s ease-in-out infinite;
+}
+
+@keyframes progressShine {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
 }
 
 .dice-unit {
@@ -610,6 +654,21 @@ button {
   text-align: center;
   padding: 0;
   animation: rise .24s ease-out both;
+}
+
+/* 结果页可爱角色 */
+.result-character {
+  font-size: 48px;
+  line-height: 1;
+  margin-bottom: 8px;
+  animation: characterBounce .6s cubic-bezier(.34,1.56,.64,1) both;
+  display: inline-block;
+}
+
+@keyframes characterBounce {
+  0% { transform: scale(0) rotate(-20deg); opacity: 0; }
+  50% { transform: scale(1.2) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
 }
 
 .result-card {
@@ -856,12 +915,31 @@ button {
     linear-gradient(180deg, color-mix(in srgb, var(--input) 84%, var(--card)), var(--input));
   cursor: pointer;
   transition: border-color .16s ease, transform .16s ease, background .16s ease;
+  position: relative;
 }
 
 .history-item:hover {
   border-color: var(--accent);
   background: var(--accent-soft);
   transform: translateY(-1px);
+}
+
+.history-item::after {
+  content: '👆 ' attr(data-hint);
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: var(--accent);
+  opacity: 0;
+  transition: opacity .2s ease;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.history-item:hover::after {
+  opacity: 1;
 }
 
 .history-title {
@@ -928,6 +1006,19 @@ button {
 
 .settings-body {
   padding: 0;
+}
+
+/* 设置分组标题 */
+.setting-group {
+  margin-bottom: 4px;
+}
+
+.setting-group-title {
+  padding: 8px 12px 4px;
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--accent);
+  letter-spacing: .5px;
 }
 
 .setting-row {
@@ -1042,7 +1133,7 @@ button {
   left: 50%;
   bottom: 48px;
   z-index: 40;
-  padding: 8px 15px;
+  padding: 10px 20px;
   border-radius: var(--pill);
   color: var(--bg);
   background: var(--text);
@@ -1051,6 +1142,7 @@ button {
   white-space: nowrap;
   font-size: 12px;
   font-weight: 800;
+  letter-spacing: .5px;
 }
 
 ::-webkit-scrollbar {

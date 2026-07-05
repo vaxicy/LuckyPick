@@ -47,6 +47,7 @@
 
     <section id="result-section" class="result-section hidden">
       <div id="confetti-container" class="confetti-container"></div>
+      <div class="result-character">🎉</div>
       <div class="result-card">
         <div class="result-kicker" data-i18n="winner_label">Result</div>
         <div id="result-winner" class="result-winner"></div>
@@ -78,40 +79,46 @@
       <button id="btn-close-settings" class="close-btn" type="button"><span class="close-mark">&times;</span></button>
     </div>
     <div class="panel-body settings-body">
-      <div class="setting-row">
-        <span data-i18n="mode_label">Mode</span>
-        <div id="set-mode" class="segmented small mode-segmented">
-          <button class="seg-btn active" type="button" data-value="dice" data-i18n="mode_dice">🎲 Dice</button>
-          <button class="seg-btn" type="button" data-value="coin" data-i18n="mode_coin">🪙 Coin</button>
-          <button class="seg-btn" type="button" data-value="wheel" data-i18n="mode_wheel">🎡 Wheel</button>
-          <button class="seg-btn" type="button" data-value="slot" data-i18n="mode_slot">🎰 Slot</button>
+      <div class="setting-group">
+        <div class="setting-group-title" data-i18n="settings_game">🎮 Game</div>
+        <div class="setting-row">
+          <span data-i18n="mode_label">Mode</span>
+          <div id="set-mode" class="segmented small mode-segmented">
+            <button class="seg-btn active" type="button" data-value="dice" data-i18n="mode_dice">🎲 Dice</button>
+            <button class="seg-btn" type="button" data-value="coin" data-i18n="mode_coin">🪙 Coin</button>
+            <button class="seg-btn" type="button" data-value="wheel" data-i18n="mode_wheel">🎡 Wheel</button>
+            <button class="seg-btn" type="button" data-value="slot" data-i18n="mode_slot">🎰 Slot</button>
+          </div>
         </div>
       </div>
-      <div class="setting-row">
-        <span data-i18n="language">Language</span>
-        <div id="set-lang" class="segmented small">
-          <button class="seg-btn active" type="button" data-value="zh">&#20013;&#25991;</button>
-          <button class="seg-btn" type="button" data-value="en">EN</button>
+      <div class="setting-group">
+        <div class="setting-group-title" data-i18n="settings_preference">⚙️ Preference</div>
+        <div class="setting-row">
+          <span data-i18n="language">Language</span>
+          <div id="set-lang" class="segmented small">
+            <button class="seg-btn active" type="button" data-value="zh">&#20013;&#25991;</button>
+            <button class="seg-btn" type="button" data-value="en">EN</button>
+          </div>
         </div>
-      </div>
-      <div class="setting-row">
-        <span data-i18n="theme_label">Dark mode</span>
-        <button id="set-theme" class="toggle" type="button" aria-label="Theme"></button>
-      </div>
-      <div class="setting-row">
-        <span data-i18n="sound_label">Sound</span>
-        <button id="set-sound" class="toggle on" type="button" aria-label="Sound"></button>
-      </div>
-      <div class="setting-row">
-        <span data-i18n="incognito_label">Incognito</span>
-        <button id="set-incognito" class="toggle" type="button" aria-label="Incognito"></button>
-      </div>
-      <div class="setting-row">
-        <span data-i18n="animation_speed">Animation</span>
-        <div id="set-speed" class="segmented small">
-          <button class="seg-btn active" type="button" data-value="normal" data-i18n="speed_normal">Normal</button>
-          <button class="seg-btn" type="button" data-value="fast" data-i18n="speed_fast">Fast</button>
-          <button class="seg-btn" type="button" data-value="slow" data-i18n="speed_slow">Slow</button>
+        <div class="setting-row">
+          <span data-i18n="theme_label">Dark mode</span>
+          <button id="set-theme" class="toggle" type="button" aria-label="Theme"></button>
+        </div>
+        <div class="setting-row">
+          <span data-i18n="sound_label">Sound</span>
+          <button id="set-sound" class="toggle on" type="button" aria-label="Sound"></button>
+        </div>
+        <div class="setting-row">
+          <span data-i18n="incognito_label">Incognito</span>
+          <button id="set-incognito" class="toggle" type="button" aria-label="Incognito"></button>
+        </div>
+        <div class="setting-row">
+          <span data-i18n="animation_speed">Animation</span>
+          <div id="set-speed" class="segmented small">
+            <button class="seg-btn active" type="button" data-value="normal" data-i18n="speed_normal">Normal</button>
+            <button class="seg-btn" type="button" data-value="fast" data-i18n="speed_fast">Fast</button>
+            <button class="seg-btn" type="button" data-value="slow" data-i18n="speed_slow">Slow</button>
+          </div>
         </div>
       </div>
     </div>

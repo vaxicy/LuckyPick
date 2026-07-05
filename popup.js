@@ -41,6 +41,8 @@
       opt_placeholder: '\u9009\u9879 {0}...',
       settings_title: '\u2699 \u8BBE\u7F6E',
       settings_tip: '\u8BBE\u7F6E',
+      settings_game: '\uD83C\uDFAE \u73A9\u6CD5\u8BBE\u7F6E',
+      settings_preference: '\u2699 \u504F\u597D\u8BBE\u7F6E',
       history_tip: '\u5386\u53F2\u8BB0\u5F55',
       language: '\u8BED\u8A00',
       theme_label: '\u6DF1\u8272\u6A21\u5F0F',
@@ -95,6 +97,8 @@
       opt_placeholder: 'Option {0}...',
       settings_title: '\u2699 Settings',
       settings_tip: 'Settings',
+      settings_game: '\uD83C\uDFAE Game',
+      settings_preference: '\u2699 Preference',
       history_tip: 'History',
       language: 'Language',
       theme_label: 'Dark mode',
@@ -483,6 +487,8 @@
       applyTheme();
       renderSettings();
       saveSettings();
+      // 显示深色模式状态提示
+      showToast(theme === 'dark' ? (lang === 'zh' ? '🌙 深色模式已开启' : '🌙 Dark mode ON') : (lang === 'zh' ? '☀️ 深色模式已关闭' : '☀️ Dark mode OFF'));
     });
 
     on('#set-sound', 'click', () => {
@@ -490,12 +496,16 @@
       renderSettings();
       saveSettings();
       if (soundEnabled) AudioSystem.play('click');
+      // 显示音效状态提示
+      showToast(soundEnabled ? (lang === 'zh' ? '🔊 音效已开启' : '🔊 Sound ON') : (lang === 'zh' ? '🔇 音效已关闭' : '🔇 Sound OFF'));
     });
 
     on('#set-incognito', 'click', () => {
       incognito = !incognito;
       renderSettings();
       saveSettings();
+      // 显示无痕模式状态提示
+      showToast(incognito ? (lang === 'zh' ? '🕶️ 无痕模式已开启' : '🕶️ Incognito ON') : (lang === 'zh' ? '🕶️ 无痕模式已关闭' : '🕶️ Incognito OFF'));
     });
 
     on('#options-list', 'input', (event) => {
@@ -1011,6 +1021,28 @@
     $('#result-section')?.classList.remove('hidden');
     document.body.classList.add('result-mode');
 
+    // 根据结果类型设置可爱角色表情
+    const character = $('.result-character');
+    if (character) {
+      if (result.isTie) {
+        character.textContent = '🤝';
+      } else {
+        // 根据不同模式显示不同表情
+        const emojis = {
+          'dice': ['🎲', '🎯', '⭐'],
+          'coin': ['🪙', '✨', '💫'],
+          'wheel': ['🎡', '🎯', '🌟'],
+          'slot': ['🎰', '🎊', '💎']
+        };
+        const modeEmojis = emojis[result.mode] || emojis['dice'];
+        character.textContent = modeEmojis[Math.floor(Math.random() * modeEmojis.length)];
+      }
+      // 重新触发动画
+      character.style.animation = 'none';
+      character.offsetHeight; // 触发重排
+      character.style.animation = '';
+    }
+
     setText('#result-winner', result.isTie ? t('tie_title') : result.winner);
 
     const visual = $('#result-dice-visual');
@@ -1115,6 +1147,7 @@
     history.slice(0, 20).forEach((record) => {
       const item = document.createElement('div');
       item.className = 'history-item';
+      item.dataset.hint = lang === 'zh' ? '点击加载' : 'Click to load';
       const recordMode = record.mode || 'dice';
       const title = record.isTie ? t('tie_title') : record.winner;
       const detail = historyDetail(record);
