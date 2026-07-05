@@ -45,6 +45,7 @@
       language: '\u8BED\u8A00',
       theme_label: '\u6DF1\u8272\u6A21\u5F0F',
       incognito_label: '\u65E0\u75D5\u6A21\u5F0F',
+      sound_label: '\u97F3\u6548',
       animation_speed: '\u52A8\u753B\u901F\u5EA6',
       speed_normal: '\u6B63\u5E38',
       speed_fast: '\u5FEB\u901F',
@@ -122,6 +123,272 @@
     state: 'luckypick_state'
   };
 
+  // 音效系统
+  let soundEnabled = true;
+  const AudioSystem = {
+    context: null,
+
+    init() {
+      try {
+        this.context = new (window.AudioContext || window.webkitAudioContext)();
+      } catch (e) {
+        console.warn('Web Audio API not supported');
+      }
+    },
+
+    play(type) {
+      if (!soundEnabled || !this.context) return;
+
+      try {
+        const now = this.context.currentTime;
+
+        switch(type) {
+          case 'dice':
+            this.playDiceSound(now);
+            break;
+
+          case 'coin':
+            this.playCoinSound(now);
+            break;
+
+          case 'wheel':
+            this.playWheelSound(now);
+            break;
+
+          case 'slot':
+            this.playSlotSound(now);
+            break;
+
+          case 'win':
+            this.playWinSound(now);
+            break;
+
+          case 'click':
+            this.playClickSound(now);
+            break;
+        }
+      } catch (e) {
+        console.warn('Audio playback failed');
+      }
+    },
+
+    // 真实骰子音效：摇动噪声 + 撞击脉冲
+    playDiceSound(now) {
+      const ctx = this.context;
+
+      // 1. 摇动声：白噪声 + 带通滤波
+      const bufferSize = ctx.sampleRate * 0.3;
+      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+
+      const whiteNoise = ctx.createBufferSource();
+      whiteNoise.buffer = noiseBuffer;
+
+      const bpFilter = ctx.createBiquadFilter();
+      bpFilter.type = 'bandpass';
+      bpFilter.frequency.value = 1000;
+      bpFilter.Q.value = 1;
+
+      const noiseGain = ctx.createGain();
+      noiseGain.gain.setValueAtTime(0.15, now);
+      noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+
+      whiteNoise.connect(bpFilter);
+      bpFilter.connect(noiseGain);
+      noiseGain.connect(ctx.destination);
+      whiteNoise.start(now);
+      whiteNoise.stop(now + 0.3);
+
+      // 2. 撞击声：短促正弦波脉冲
+      const hitOsc = ctx.createOscillator();
+      const hitGain = ctx.createGain();
+      hitOsc.type = 'sine';
+      hitOsc.frequency.setValueAtTime(1200, now + 0.25);
+      hitOsc.frequency.exponentialRampToValueAtTime(600, now + 0.3);
+      hitGain.gain.setValueAtTime(0.3, now + 0.25);
+      hitGain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+      hitOsc.connect(hitGain);
+      hitGain.connect(ctx.destination);
+      hitOsc.start(now + 0.25);
+      hitOsc.stop(now + 0.35);
+    },
+
+    // 硬币音效：清脆叮声
+    // 硬币音效：丁零当啷金属清脆声
+    playCoinSound(now) {
+      const ctx = this.context;
+
+      // 金属共振频率（硬币的典型共振频率）
+      const freqs = [2800, 4200, 5400, 7800];
+      const gains = [0.15, 0.1, 0.07, 0.04];
+
+      freqs.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.type = 'triangle'; // 三角波更接近金属质感
+        osc.frequency.setValueAtTime(freq, now);
+
+        // 每个频率有不同的衰减时间，模拟真实金属共振
+        const decayTime = 0.15 + i * 0.1;
+        gain.gain.setValueAtTime(gains[i], now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + decayTime);
+
+        osc.start(now);
+        osc.stop(now + decayTime + 0.05);
+      });
+
+      // "丁" - 高频撞击声（模拟硬币碰撞的瞬间）
+      const dingOsc = ctx.createOscillator();
+      const dingGain = ctx.createGain();
+      dingOsc.connect(dingGain);
+      dingGain.connect(ctx.destination);
+      dingOsc.type = 'sine';
+      dingOsc.frequency.setValueAtTime(6000, now);
+      dingOsc.frequency.exponentialRampToValueAtTime(3000, now + 0.05);
+      dingGain.gain.setValueAtTime(0.2, now);
+      dingGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      dingOsc.start(now);
+      dingOsc.stop(now + 0.08);
+
+      // "当" - 低频回响（模拟硬币落下的余音）
+      const dangOsc = ctx.createOscillator();
+      const dangGain = ctx.createGain();
+      dangOsc.connect(dangGain);
+      dangGain.connect(ctx.destination);
+      dangOsc.type = 'triangle';
+      dangOsc.frequency.setValueAtTime(1200, now + 0.05);
+      dangOsc.frequency.exponentialRampToValueAtTime(800, now + 0.3);
+      dangGain.gain.setValueAtTime(0.12, now + 0.05);
+      dangGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+      dangOsc.start(now + 0.05);
+      dangOsc.stop(now + 0.4);
+
+      // 轻微的白噪声模拟空气感
+      const bufferSize = ctx.sampleRate * 0.05;
+      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = (Math.random() * 2 - 1) * 0.3;
+      }
+      const noise = ctx.createBufferSource();
+      noise.buffer = noiseBuffer;
+      const noiseGain = ctx.createGain();
+      const hpFilter = ctx.createBiquadFilter();
+      hpFilter.type = 'highpass';
+      hpFilter.frequency.value = 5000;
+      noise.connect(hpFilter);
+      hpFilter.connect(noiseGain);
+      noiseGain.connect(ctx.destination);
+      noiseGain.gain.setValueAtTime(0.05, now);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+      noise.start(now);
+      noise.stop(now + 0.05);
+    },
+
+    // 柔和转盘音效：减速 + 轻微机械声
+    playWheelSound(now) {
+      const ctx = this.context;
+
+      // 主音调：模拟转盘减速
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, now);
+      osc.frequency.exponentialRampToValueAtTime(400, now + 0.3);
+      osc.frequency.exponentialRampToValueAtTime(200, now + 0.6);
+
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.linearRampToValueAtTime(0.2, now + 0.2);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+
+      osc.start(now);
+      osc.stop(now + 0.8);
+
+      // 轻微机械"咔嗒"声
+      const tickOsc = ctx.createOscillator();
+      const tickGain = ctx.createGain();
+      tickOsc.type = 'square';
+      tickOsc.frequency.setValueAtTime(3000, now);
+      tickGain.gain.setValueAtTime(0.05, now);
+      tickGain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+      tickOsc.connect(tickGain);
+      tickGain.connect(ctx.destination);
+      tickOsc.start(now);
+      tickOsc.stop(now + 0.05);
+    },
+
+    // 老虎机音效：节奏感咔咔声
+    playSlotSound(now) {
+      const ctx = this.context;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(1000, now);
+      osc.frequency.setValueAtTime(500, now + 0.05);
+      osc.frequency.setValueAtTime(1000, now + 0.1);
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+
+      osc.start(now);
+      osc.stop(now + 0.15);
+    },
+
+    // 胜利音效：C-E-G 和弦
+    playWinSound(now) {
+      const ctx = this.context;
+      const notes = [523, 659, 784]; // C5, E5, G5
+
+      notes.forEach((freq, index) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + index * 0.1);
+        gain.gain.setValueAtTime(0.2, now + index * 0.1);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + index * 0.1 + 0.4);
+
+        osc.start(now + index * 0.1);
+        osc.stop(now + index * 0.1 + 0.4);
+      });
+    },
+
+    // 点击音效
+    playClickSound(now) {
+      const ctx = this.context;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1000, now);
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+
+      osc.start(now);
+      osc.stop(now + 0.05);
+    }
+  };
+
   let lang = 'zh';
   let theme = 'light';
   let mode = 'dice';
@@ -159,6 +426,7 @@
       bindEvents();
       restoreState();
       applyModeUI();
+      AudioSystem.init();
     });
   }
 
@@ -215,6 +483,13 @@
       applyTheme();
       renderSettings();
       saveSettings();
+    });
+
+    on('#set-sound', 'click', () => {
+      soundEnabled = !soundEnabled;
+      renderSettings();
+      saveSettings();
+      if (soundEnabled) AudioSystem.play('click');
     });
 
     on('#set-incognito', 'click', () => {
@@ -392,6 +667,9 @@
     $('#battle-section')?.classList.remove('hidden');
     setText('#battle-section .battle-title', t(`battle_title_${mode}`));
     if ($('#progress-bar')) $('#progress-bar').style.width = '0%';
+
+    // 播放对应模式的音效
+    AudioSystem.play(mode);
 
     if (mode === 'coin') runCoin(options);
     else if (mode === 'wheel') runWheel(options);
@@ -576,10 +854,14 @@
     function finishResult(result) {
     isRolling = false;
     $('#btn-roll')?.classList.remove('rolling');
+    
     lastResult = result;
     renderResult(result);
     saveResultState(result);
     if (!incognito) saveHistory(result);
+    
+    // 播放胜利音效
+    AudioSystem.play('win');
   }
 
   function getWinners(rolls) {
@@ -914,6 +1196,7 @@
       button.classList.toggle('active', button.dataset.value === animSpeed);
     });
     $('#set-theme')?.classList.toggle('on', theme === 'dark');
+    $('#set-sound')?.classList.toggle('on', soundEnabled);
     $('#set-incognito')?.classList.toggle('on', incognito);
   }
 
@@ -924,6 +1207,7 @@
       theme = settings.theme || 'light';
       mode = MODES.includes(settings.mode) ? settings.mode : 'dice';
       incognito = Boolean(settings.incognito);
+      soundEnabled = settings.soundEnabled !== false;
       animSpeed = settings.animSpeed || 'normal';
       history = Array.isArray(result[STORAGE.history]) ? result[STORAGE.history] : [];
       done();
@@ -932,7 +1216,7 @@
 
   function saveSettings() {
     chrome.storage.local.set({
-      [STORAGE.settings]: { lang, theme, mode, rule: RULE, incognito, animSpeed }
+      [STORAGE.settings]: { lang, theme, mode, rule: RULE, incognito, soundEnabled, animSpeed }
     });
   }
 

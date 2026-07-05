@@ -711,6 +711,12 @@ button {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 7px;
+  margin-top: 8px;
+}
+
+.result-actions .action-btn {
+  font-size: 12px;
+  min-height: 34px;
 }
 
 .action-btn {
