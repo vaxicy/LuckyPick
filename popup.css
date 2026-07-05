@@ -821,6 +821,14 @@ button {
   margin-top: 8px;
 }
 
+/* 结果页时间戳 */
+.result-timestamp {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 10.5px;
+  text-align: center;
+}
+
 .result-actions .action-btn {
   font-size: 12px;
   min-height: 34px;
@@ -940,6 +948,37 @@ button {
 
 .history-item:hover::after {
   opacity: 1;
+}
+
+/* 历史记录单条删除按钮 */
+.history-delete-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 18px;
+  height: 18px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity .15s ease, background .15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.history-item:hover .history-delete-btn {
+  opacity: .6;
+}
+
+.history-delete-btn:hover {
+  opacity: 1 !important;
+  background: rgba(255, 100, 100, .12);
+  color: #e88;
 }
 
 .history-title {

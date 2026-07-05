@@ -509,7 +509,20 @@
     });
 
     on('#options-list', 'input', (event) => {
-      if (event.target.classList.contains('option-input')) saveStateDebounced();
+      if (event.target.classList.contains('option-input')) {
+        saveStateDebounced();
+        // 实时校验重复选项
+        const currentValue = event.target.value.trim();
+        if (!currentValue) {
+          event.target.style.borderColor = '';
+          return;
+        }
+        const allInputs = $$('.option-input');
+        const hasDuplicate = allInputs.some((input) => {
+          return input !== event.target && input.value.trim() === currentValue;
+        });
+        event.target.style.borderColor = hasDuplicate ? 'var(--accent-2)' : '';
+      }
     });
     on('#options-list', 'keydown', (event) => {
       if (event.key === 'Enter') doPick();
@@ -1064,6 +1077,18 @@
     else renderDiceVisual(visual, result);
 
     spawnConfetti();
+
+    // 显示时间戳
+    const timestamp = $('#result-timestamp');
+    if (timestamp) {
+      const now = new Date();
+      const diff = Date.now() - (result.createdAt || Date.now());
+      let timeText = '';
+      if (diff < 60000) timeText = lang === 'zh' ? '刚刚' : 'Just now';
+      else if (diff < 3600000) timeText = `${Math.floor(diff / 60000)} ${lang === 'zh' ? '分钟前' : 'min ago'}`;
+      else timeText = formatTime(result.createdAt);
+      timestamp.textContent = `🕐 ${timeText}`;
+    }
   }
 
   function renderDiceVisual(visual, result) {
@@ -1129,6 +1154,9 @@
     document.body.classList.remove('result-mode');
     applyModeUI();
     clearResultState();
+    // 自动聚焦到第一个输入框
+    const firstInput = $('#options-list .option-input');
+    if (firstInput) setTimeout(() => firstInput.focus(), 100);
   }
 
   function saveHistory(result) {
@@ -1155,7 +1183,7 @@
     }
 
     list.innerHTML = '';
-    history.slice(0, 20).forEach((record) => {
+    history.slice(0, 20).forEach((record, recordIndex) => {
       const item = document.createElement('div');
       item.className = 'history-item';
       item.dataset.hint = lang === 'zh' ? '点击加载' : 'Click to load';
@@ -1166,13 +1194,23 @@
         <div class="history-title">${modeIcon(recordMode)} ${escapeHtml(title)}</div>
         <div class="history-detail">${escapeHtml(detail)}</div>
         <div class="history-meta">${formatTime(record.createdAt)}</div>
+        <button class="history-delete-btn" type="button" title="${lang === 'zh' ? '删除' : 'Delete'}">×</button>
       `;
-      item.addEventListener('click', () => {
+      item.addEventListener('click', (e) => {
+        if (e.target.classList.contains('history-delete-btn')) return;
         showConfirm(t('load_history')).then((ok) => {
           if (!ok) return;
           loadHistoryRecord(record);
         });
       });
+      const deleteBtn = item.querySelector('.history-delete-btn');
+      if (deleteBtn) {
+        deleteBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          history.splice(recordIndex, 1);
+          chrome.storage.local.set({ [STORAGE.history]: history }, renderHistory);
+        });
+      }
       list.appendChild(item);
     });
   }
