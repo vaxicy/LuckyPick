@@ -513,15 +513,26 @@
         saveStateDebounced();
         // 实时校验重复选项
         const currentValue = event.target.value.trim();
-        if (!currentValue) {
-          event.target.style.borderColor = '';
-          return;
-        }
         const allInputs = $$('.option-input');
-        const hasDuplicate = allInputs.some((input) => {
-          return input !== event.target && input.value.trim() === currentValue;
+        const allRows = $$('.option-row');
+        // 清除所有重复标记
+        allRows.forEach((row) => row.classList.remove('duplicate'));
+        if (!currentValue) return;
+        // 检查并标记重复
+        const seen = new Map();
+        allInputs.forEach((input, index) => {
+          const val = input.value.trim();
+          if (!val) return;
+          if (seen.has(val)) {
+            // 标记当前和之前出现的行
+            const prevRow = allRows[seen.get(val)];
+            const currRow = allRows[index];
+            if (prevRow) prevRow.classList.add('duplicate');
+            if (currRow) currRow.classList.add('duplicate');
+          } else {
+            seen.set(val, index);
+          }
         });
-        event.target.style.borderColor = hasDuplicate ? 'var(--accent-2)' : '';
       }
     });
     on('#options-list', 'keydown', (event) => {
@@ -1545,8 +1556,8 @@
   }
 
   function createRipple(event) {
-    const button = event.currentTarget;
-    if (!button || button.disabled) return;
+    const button = event.target.closest('button');
+    if (!button || button.disabled || button.classList.contains('delete-btn') || !button.getBoundingClientRect) return;
     const rect = button.getBoundingClientRect();
     const size = Math.max(rect.width, rect.height);
     const x = (event.clientX || event.touches?.[0]?.clientX || rect.left + rect.width / 2) - rect.left - size / 2;

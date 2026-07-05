@@ -185,6 +185,11 @@ button {
   animation: inputFocus 1.5s ease-in-out infinite;
 }
 
+.option-row.duplicate {
+  border-color: #e88 !important;
+  background: rgba(255, 100, 100, .06) !important;
+}
+
 @keyframes inputFocus {
   0%, 100% { box-shadow: 0 0 0 3px var(--accent-bg), 0 5px 14px rgba(65, 55, 120, .08); }
   50% { box-shadow: 0 0 0 4px var(--accent-bg), 0 5px 18px rgba(196, 122, 176, .15); }
