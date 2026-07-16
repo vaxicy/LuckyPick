@@ -23,7 +23,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["赞赏码.png", "donate.html"],
+      "resources": ["assets/赞赏码.png", "donate.html"],
       "matches": ["<all_urls>"]
     }
   ],

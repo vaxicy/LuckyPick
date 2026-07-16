@@ -1,0 +1,16 @@
+import importlib.util
+
+SCRIPT = r'c:\Users\16704\.vscode\extensions\tencent-cloud.coding-copilot-4.10.32994164\out\extension\builtin\buddy-multimodal-generation\scripts\buddy-cloud.py'
+spec = importlib.util.spec_from_file_location("buddy_cloud", SCRIPT)
+bc = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(bc)
+
+token = 'eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJteWZFenA3ODNLaV9KQ3g4Vm5jM1hfaXg2alpyYjZDZjVPTWtHWk1QSTNzIn0.eyJleHAiOjE4MDc3MTc1NzgsImlhdCI6MTc4NDE5NDc2MCwiYXV0aF90aW1lIjoxNzc2MTgxNTc2LCJqdGkiOiI0YTU3NTYzZC1iMDgyLTQ4OTEtOTI5MS02MWFjZGMxNGIzZjEiLCJpc3MiOiJodHRwczovL3d3dy5jb2RlYnVkZHkuY24vYXV0aC9yZWFsbXMvY29waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiIyOTc3OGQ5Mi05MWUxLTQzNjktODk1My0wMzM0YjU3MmYwNDAiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJjb25zb2xlIiwic2lkIjoiMmEwNzk2Y2EtMTE0Zi00MmY5LWFmMmEtMzk3NWY4NTRhZTZhIiwiYWNyIjoiMCIsImFsbG93ZWQtb3JpZ2lucyI6WyIqIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJkZWZhdWx0LXJvbGVzIiwib2ZmbGluZV9hY2Nlc3MiLCJ1bWFfYXV0aG9yaXphdGlvbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoib3BlbmlkIHByb2ZpbGUgb2ZmbGluZV9hY2Nlc3MgZW1haWwiLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsIm5pY2tuYW1lIjoi44WkIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiMTMwMzY4ODQwMDQifQ.pS6O_TbaJslsoGA_dZYbQ4Wm7-raPuDBF1JOGSIs0yr7ihD1tw9Z7W1a36fmFKPIVyNTeVT6b1qXDY2YT4hedc4eAmLzc0DtlPEmyJ2z2_TG4Gig2FU4Y1Xv93zc5HrINel0Il1og0V2pF89bo0AIEJoZyCme_nCkTPZ4OZ1puY2AGBifcsyMKdq06zzqaxxktkMMJOo73OEGFZy0Ea4fNaJiND-Si96y7MmNbMGlkSK2sA_c71OvvwpetsrPiQ-eARkXkL1MzyYcsO2-o2IqOqqcZ29LsuE3Bbj-ZbdHIkW1Pc5tzVKplX_kjvWGIPSKhCNNrIr3W8PPd_W3gmWNw'
+
+cfg = bc._PROVIDER_MAP['image']
+print('Testing API call...')
+try:
+    r = bc._call_api(bc._DEFAULT_ENDPOINT, cfg['provider'], cfg['service'], cfg['version'], cfg['submit_action'], {'Prompt': 'test'}, token)
+    print('RESULT:', str(r)[:300])
+except Exception as e:
+    print('ERROR:', type(e).__name__, str(e)[:300])
