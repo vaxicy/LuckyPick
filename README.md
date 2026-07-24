@@ -156,7 +156,6 @@ LuckyPick/
 ## 📬 联系方式
 
 - 提出 Issue：https://github.com/vaxicy/LuckyPick/issues
-- Chrome Web Store：https://chromewebstore.google.com/detail/lucky-pick-%E9%80%89%E6%8B%A9%E5%9B%B0%E9%9A%BE%E7%97%87%E5%B0%8F%E5%8A%A9%E6%89%8B/gbcnknngobfkiidepacnehgdjoldiceb
 - 如果这个扩展帮助了你，欢迎[打赏支持](./donate.html) ☕
 
 ---
