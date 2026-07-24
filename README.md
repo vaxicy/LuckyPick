@@ -59,7 +59,9 @@
 
 ### 从 Chrome Web Store 安装
 
-> 即将上架，敬请期待！
+[![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-安装-blue?logo=google-chrome&logoColor=white)](https://chromewebstore.google.com/detail/lucky-pick-%E9%80%89%E6%8B%A9%E5%9B%B0%E9%9A%BE%E7%97%87%E5%B0%8F%E5%8A%A9%E6%89%8B/gbcnknngobfkiidepacnehgdjoldiceb)
+
+👉 [立即安装：Chrome Web Store](https://chromewebstore.google.com/detail/lucky-pick-%E9%80%89%E6%8B%A9%E5%9B%B0%E9%9A%BE%E7%97%87%E5%B0%8F%E5%8A%A9%E6%89%8B/gbcnknngobfkiidepacnehgdjoldiceb)
 
 ---
 
@@ -154,6 +156,7 @@ LuckyPick/
 ## 📬 联系方式
 
 - 提出 Issue：https://github.com/vaxicy/LuckyPick/issues
+- Chrome Web Store：https://chromewebstore.google.com/detail/lucky-pick-%E9%80%89%E6%8B%A9%E5%9B%B0%E9%9A%BE%E7%97%87%E5%B0%8F%E5%8A%A9%E6%89%8B/gbcnknngobfkiidepacnehgdjoldiceb
 - 如果这个扩展帮助了你，欢迎[打赏支持](./donate.html) ☕
 
 ---
