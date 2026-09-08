@@ -426,7 +426,7 @@ import { t, setLang } from './js/i18n.js';
       renderSettings();
       saveSettings();
       // 显示深色模式状态提示
-      showToast(theme === 'dark' ? (lang === 'zh' ? '🌙 深色模式已开启' : '🌙 Dark mode ON') : (lang === 'zh' ? '☀️ 深色模式已关闭' : '☀️ Dark mode OFF'));
+      showToast(theme === 'dark' ? t('theme_on_toast') : t('theme_off_toast'));
     });
 
     on('#set-sound', 'click', () => {
@@ -435,7 +435,7 @@ import { t, setLang } from './js/i18n.js';
       saveSettings();
       if (soundEnabled) AudioSystem.play('click');
       // 显示音效状态提示
-      showToast(soundEnabled ? (lang === 'zh' ? '🔊 音效已开启' : '🔊 Sound ON') : (lang === 'zh' ? '🔇 音效已关闭' : '🔇 Sound OFF'));
+      showToast(soundEnabled ? t('sound_on_toast') : t('sound_off_toast'));
     });
 
     on('#set-incognito', 'click', () => {
@@ -535,7 +535,7 @@ import { t, setLang } from './js/i18n.js';
   }
 
   function applyI18n() {
-    document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+    document.documentElement.lang = lang === 'en' ? 'en' : (lang === 'es' ? 'es' : 'zh-CN');
     setText('#app-name', t('app_name'));
     $$('[data-i18n]').forEach((element) => {
       element.textContent = t(element.dataset.i18n);
@@ -694,7 +694,7 @@ import { t, setLang } from './js/i18n.js';
   function copyResult() {
     if (!lastResult) return;
     const winner = lastResult.isTie ? t('tie_title') : lastResult.winner;
-    const options = (lastResult.options || []).join(lang === 'zh' ? '、' : ', ');
+    const options = (lastResult.options || []).join(t('list_sep'));
     const text = t('copy_tpl').replace('{0}', winner || '').replace('{1}', options);
     const done = () => showToast(t('copied'));
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -1321,8 +1321,8 @@ import { t, setLang } from './js/i18n.js';
       const now = new Date();
       const diff = Date.now() - (result.createdAt || Date.now());
       let timeText = '';
-      if (diff < 60000) timeText = lang === 'zh' ? '刚刚' : 'Just now';
-      else if (diff < 3600000) timeText = `${Math.floor(diff / 60000)} ${lang === 'zh' ? '分钟前' : 'min ago'}`;
+      if (diff < 60000) timeText = t('time_now');
+      else if (diff < 3600000) timeText = t('time_min_ago').replace('{0}', Math.floor(diff / 60000));
       else timeText = formatTime(result.createdAt);
       timestamp.textContent = `🕐 ${timeText}`;
     }
@@ -1449,7 +1449,7 @@ import { t, setLang } from './js/i18n.js';
     source.slice(0, 20).forEach((record, recordIndex) => {
       const item = document.createElement('div');
       item.className = 'history-item';
-      item.dataset.hint = lang === 'zh' ? '点击加载' : 'Click to load';
+      item.dataset.hint = t('click_load');
       const recordMode = record.mode || 'dice';
       const title = record.isTie ? t('tie_title') : record.winner;
       const detail = historyDetail(record);
@@ -1457,7 +1457,7 @@ import { t, setLang } from './js/i18n.js';
         <div class="history-title">${modeIcon(recordMode)} ${escapeHtml(title)}</div>
         <div class="history-detail">${escapeHtml(detail)}</div>
         <div class="history-meta">${formatTime(record.createdAt)}</div>
-        <button class="history-delete-btn" type="button" title="${lang === 'zh' ? '删除' : 'Delete'}">×</button>
+        <button class="history-delete-btn" type="button" title="${escapeAttr(t('delete_action'))}">×</button>
       `;
       item.addEventListener('click', (e) => {
         if (e.target.classList.contains('history-delete-btn')) return;
@@ -1701,8 +1701,8 @@ import { t, setLang } from './js/i18n.js';
           <div class="favorite-item-options">${(fav.options || []).slice(0, 3).map(o => escapeHtml(o)).join(', ')}${optCount > 3 ? '...' : ''}</div>
         </div>
         <div class="fav-item-actions">
-          <button class="favorite-item-rename tip-side" type="button" data-tip="${lang === 'zh' ? '重命名' : 'Rename'}">&#9999;&#65039;</button>
-          <button class="favorite-item-delete tip-side" type="button" data-tip="${lang === 'zh' ? '删除' : 'Delete'}">&times;</button>
+          <button class="favorite-item-rename tip-side" type="button" data-tip="${escapeAttr(t('rename_action'))}">&#9999;&#65039;</button>
+          <button class="favorite-item-delete tip-side" type="button" data-tip="${escapeAttr(t('delete_action'))}">&times;</button>
         </div>
       `;
       item.addEventListener('click', (e) => {
