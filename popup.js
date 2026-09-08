@@ -1310,6 +1310,9 @@ import { t, setLang } from './js/i18n.js';
         : '';
     }
 
+    const actionsBar = document.querySelector('.result-actions');
+    if (actionsBar) actionsBar.classList.toggle('rps-cols', result.mode === 'rps');
+
     spawnConfetti();
 
     // 显示时间戳

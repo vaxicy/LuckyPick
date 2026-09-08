@@ -1241,6 +1241,11 @@ button {
   margin-top: 7px;
 }
 
+/* 猜拳结果没有"换一个"按钮，3 个按钮一行排布 */
+.result-actions.rps-cols {
+  grid-template-columns: repeat(3, 1fr);
+}
+
 /* 结果页时间戳 */
 .result-timestamp {
   margin: 5px 0 9px;
@@ -1583,7 +1588,7 @@ button {
   cursor: pointer;
   font-size: 15px;
   line-height: 1;
-  opacity: 0;
+  opacity: .55;
   transition: opacity .15s ease, background .15s ease, color .15s ease;
   display: flex;
   align-items: center;
@@ -1592,7 +1597,7 @@ button {
 }
 
 .favorite-item:hover .favorite-item-delete {
-  opacity: .55;
+  opacity: 1;
 }
 
 .favorite-item-delete:hover {
