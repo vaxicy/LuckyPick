@@ -5,6 +5,8 @@ Sources: store-assets/source-captures/<lang>/capture-*.png
 Output:  store-assets/screenshots/<lang>/*.png
 """
 from pathlib import Path
+import sys
+
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 from store_texts import CAPTURES
@@ -14,7 +16,7 @@ ASSETS = ROOT / "store-assets"
 SRC_BASE = ASSETS / "source-captures"
 
 W, H = 1280, 800
-LANGS = ("zh", "en", "es")
+LANGS = tuple(sys.argv[1].split(",")) if len(sys.argv) > 1 else ("zh", "en", "es")
 
 TEXT = "#4a3860"
 SUB = "#8e7aaa"

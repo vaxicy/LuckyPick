@@ -112,26 +112,4 @@ CAPTURES = [
             "detail": "Animación de choque y desempate automático.",
         },
     },
-    {
-        "stored": "capture-settings.png",
-        "out": "06-settings.png",
-        "zh": {
-            "title": "设置简洁，支持中英西三语",
-            "desc": "玩法、语言、深色模式集中在轻量设置面板里。",
-            "feature": "三语界面",
-            "detail": "中文 / English / Español 一键切换。",
-        },
-        "en": {
-            "title": "Clean Settings, 3 Languages",
-            "desc": "Modes, language, dark mode — all in a lightweight panel.",
-            "feature": "i18n Ready",
-            "detail": "中文 / English / Español, one tap away.",
-        },
-        "es": {
-            "title": "Ajustes simples, 3 idiomas",
-            "desc": "Modos, idioma y modo oscuro en un panel ligero.",
-            "feature": "Multi-idioma",
-            "detail": "中文 / English / Español, a un toque.",
-        },
-    },
 ]
