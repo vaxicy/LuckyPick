@@ -514,16 +514,20 @@ import { t, setLang } from './js/i18n.js';
     document.body.dataset.mode = mode;
     setText('#btn-roll', t(`roll_btn_${mode}`));
     const addButton = $('#btn-add-option');
-    if (addButton) addButton.classList.toggle('hidden', mode === 'coin');
+    if (addButton) addButton.classList.toggle('hidden', mode === 'coin' || mode === 'rps');
     const bulkButton = $('#btn-bulk-add');
-    if (bulkButton) bulkButton.classList.toggle('hidden', mode === 'coin');
-    if (mode === 'coin') closeBulkBox();
-    const optionsBox = document.querySelector('.options-box');
-    if (optionsBox) optionsBox.classList.toggle('hidden', mode === 'rps');
+    if (bulkButton) bulkButton.classList.toggle('hidden', mode === 'coin' || mode === 'rps');
+    if (mode === 'coin' || mode === 'rps') closeBulkBox();
     const hint = $('#mode-hint');
     if (hint) {
-      const show = mode === 'coin' && optionCount > 2;
-      hint.textContent = show ? t('coin_hint') : '';
+      let show = false;
+      if (mode === 'coin' && optionCount > 2) {
+        hint.textContent = t('coin_hint');
+        show = true;
+      } else if (mode === 'rps') {
+        hint.textContent = t('rps_hint');
+        show = true;
+      }
       hint.classList.toggle('hidden', !show);
     }
     reindexRows();
@@ -606,7 +610,7 @@ import { t, setLang } from './js/i18n.js';
     const button = row.querySelector('.delete-btn');
     if (!button) return;
     button.addEventListener('click', () => {
-      if (mode === 'coin' || optionCount <= 2) return;
+      if (mode === 'coin' || mode === 'rps' || optionCount <= 2) return;
       row.remove();
       optionCount -= 1;
       reindexRows();
@@ -690,17 +694,8 @@ import { t, setLang } from './js/i18n.js';
   function copyResult() {
     if (!lastResult) return;
     const winner = lastResult.isTie ? t('tie_title') : lastResult.winner;
-    let text;
-    if (lastResult.mode === 'rps') {
-      const hands = { rock: '✊', paper: '✋', scissors: '✌️' };
-      text = t('rps_copy_tpl')
-        .replace('{0}', hands[lastResult.playerHand] || '✊')
-        .replace('{1}', hands[lastResult.botHand] || '✌️')
-        .replace('{2}', winner || '');
-    } else {
-      const options = (lastResult.options || []).join(lang === 'zh' ? '、' : ', ');
-      text = t('copy_tpl').replace('{0}', winner || '').replace('{1}', options);
-    }
+    const options = (lastResult.options || []).join(lang === 'zh' ? '、' : ', ');
+    const text = t('copy_tpl').replace('{0}', winner || '').replace('{1}', options);
     const done = () => showToast(t('copied'));
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
@@ -730,10 +725,10 @@ import { t, setLang } from './js/i18n.js';
       const badge = row.querySelector('.badge');
       const button = row.querySelector('.delete-btn');
       if (badge) badge.textContent = String.fromCharCode(65 + index);
-      row.classList.toggle('hidden', mode === 'coin' && index > 1);
-      if (button) button.style.visibility = mode !== 'coin' && optionCount > 2 ? 'visible' : 'hidden';
+      row.classList.toggle('hidden', (mode === 'coin' || mode === 'rps') && index > 1);
+      if (button) button.style.visibility = (mode !== 'coin' && mode !== 'rps') && optionCount > 2 ? 'visible' : 'hidden';
       const weightBtn = row.querySelector('.weight-btn');
-      if (weightBtn) weightBtn.style.visibility = mode === 'coin' ? 'hidden' : 'visible';
+      if (weightBtn) weightBtn.style.visibility = (mode === 'coin' || mode === 'rps') ? 'hidden' : 'visible';
     });
     updatePlaceholders();
   }
@@ -741,6 +736,11 @@ import { t, setLang } from './js/i18n.js';
   function updatePlaceholders() {
     $$('.option-input').forEach((input, index) => {
       const letter = String.fromCharCode(65 + index);
+      if (mode === 'rps') {
+        if (index === 0) input.placeholder = t('rps_ph_a');
+        else if (index === 1) input.placeholder = t('rps_ph_b');
+        return;
+      }
       if (index === 0) input.placeholder = t('opt_placeholder_a');
       else if (index === 1) input.placeholder = t('opt_placeholder_b');
       else input.placeholder = t('opt_placeholder').replace('{0}', letter);
@@ -788,8 +788,7 @@ import { t, setLang } from './js/i18n.js';
     const options = getModeOptions();
     const rollButton = $('#btn-roll');
     if (rollButton) {
-      // 猜拳模式不需要选项
-      const disabled = mode !== 'rps' && options.length < 2;
+      const disabled = options.length < 2;
       rollButton.disabled = disabled;
       rollButton.title = disabled ? t('min_options') : '';
       rollButton.classList.toggle('disabled', disabled);
@@ -799,7 +798,7 @@ import { t, setLang } from './js/i18n.js';
   function doPick() {
     if (isRolling) return;
     const options = getModeOptions();
-    if (mode !== 'rps' && options.length < 2) {
+    if (options.length < 2) {
       showToast(t('min_options'));
       return;
     }
@@ -910,9 +909,15 @@ import { t, setLang } from './js/i18n.js';
     stage.className = 'rps-stage';
     stage.innerHTML = `
       <div class="rps-arena">
-        <div class="rps-hand" id="rps-player">✊</div>
+        <div class="rps-hand-wrap">
+          <div class="rps-hand" id="rps-player">✊</div>
+          <div class="rps-hand-tag">${escapeHtml(t('rps_you'))}</div>
+        </div>
         <div class="rps-vs">VS</div>
-        <div class="rps-hand" id="rps-bot">✊</div>
+        <div class="rps-hand-wrap">
+          <div class="rps-hand" id="rps-bot">✊</div>
+          <div class="rps-hand-tag">${escapeHtml(t('rps_bot'))}</div>
+        </div>
       </div>
       <div class="rps-choices" id="rps-choices">
         <button class="rps-choice" type="button" data-hand="rock">✊</button>
@@ -964,20 +969,35 @@ import { t, setLang } from './js/i18n.js';
       botEl.textContent = RPS_HANDS[botHand].emoji;
       botEl.classList.add('landed');
     }
-    const isTie = playerHand === botHand;
+
+    // 平局：不出结果，回到出拳选择重来
+    if (playerHand === botHand) {
+      showToast(t('tie_msg'));
+      setTimeout(() => {
+        playerEl?.classList.remove('landed');
+        botEl?.classList.remove('landed');
+        $('#rps-choices')?.classList.remove('hidden');
+        const prompt = document.querySelector('.rps-prompt');
+        if (prompt) prompt.classList.remove('hidden');
+        if ($('#progress-bar')) $('#progress-bar').style.width = '0%';
+      }, 750);
+      return;
+    }
+
     const playerWins = RPS_HANDS[playerHand].beats === botHand;
-    const outcome = isTie ? 'tie' : (playerWins ? 'win' : 'lose');
-    const labels = { win: t('rps_win'), lose: t('rps_lose'), tie: t('tie_title') };
+    const options = getModeOptions();
+    // 玩家赢选 B（自己的选项），机器赢选 A（电脑的选项）
+    const winnerIndex = playerWins ? 1 : 0;
     const result = {
       id: Date.now(),
       mode: 'rps',
-      options: [],
+      options,
       playerHand,
       botHand,
-      outcome,
-      winnerIndex: -1,
-      winner: labels[outcome],
-      isTie,
+      outcome: playerWins ? 'win' : 'lose',
+      winnerIndex,
+      winner: options[winnerIndex],
+      isTie: false,
       createdAt: new Date().toISOString()
     };
     setTimeout(() => finishResult(result), 520);
@@ -1363,8 +1383,8 @@ import { t, setLang } from './js/i18n.js';
 
   function renderRpsVisual(visual, result) {
     const entries = [
-      { label: t('rps_you'), emoji: (RPS_HANDS[result.playerHand] || {}).emoji || '✊', win: result.outcome === 'win' },
-      { label: t('rps_bot'), emoji: (RPS_HANDS[result.botHand] || {}).emoji || '✌️', win: result.outcome === 'lose' }
+      { emoji: (RPS_HANDS[result.playerHand] || {}).emoji || '✊', label: result.options[0] || t('rps_you'), win: result.winnerIndex === 0 },
+      { emoji: (RPS_HANDS[result.botHand] || {}).emoji || '✌️', label: result.options[1] || t('rps_bot'), win: result.winnerIndex === 1 }
     ];
     entries.forEach((entry) => {
       const chip = document.createElement('div');
@@ -1471,10 +1491,6 @@ import { t, setLang } from './js/i18n.js';
     }
     if (record.mode === 'coin') return record.options.join(' / ');
     if (record.mode === 'slot') return record.options.map((option, index) => `${index + 1}. ${option}`).join(' / ');
-    if (record.mode === 'rps') {
-      const hands = { rock: '✊', paper: '✋', scissors: '✌️' };
-      return `${t('rps_you')} ${hands[record.playerHand] || '✊'} / ${t('rps_bot')} ${hands[record.botHand] || '✌️'}`;
-    }
     return record.options.map((option, index) => `${String.fromCharCode(65 + index)} ${option}`).join(' / ');
   }
 
@@ -1669,7 +1685,7 @@ import { t, setLang } from './js/i18n.js';
       return;
     }
     list.innerHTML = '';
-    const MODE_ICONS = { dice: '🎲', coin: '🪙', wheel: '🎡', slot: '🎲' };
+    const MODE_ICONS = { dice: '🎲', coin: '🪙', wheel: '🎡', slot: '🎲', rps: '✊' };
     source.forEach((fav) => {
       const item = document.createElement('div');
       item.className = 'favorite-item';
@@ -1681,8 +1697,10 @@ import { t, setLang } from './js/i18n.js';
           <div class="favorite-item-name">${escapeHtml(fav.name)}</div>
           <div class="favorite-item-options">${(fav.options || []).slice(0, 3).map(o => escapeHtml(o)).join(', ')}${optCount > 3 ? '...' : ''}</div>
         </div>
-        <button class="favorite-item-rename" type="button" data-tip="${lang === 'zh' ? '重命名' : 'Rename'}">&#9999;&#65039;</button>
-        <button class="favorite-item-delete" type="button" title="${lang === 'zh' ? '删除' : 'Delete'}">×</button>
+        <div class="fav-item-actions">
+          <button class="favorite-item-rename tip-side" type="button" data-tip="${lang === 'zh' ? '重命名' : 'Rename'}">&#9999;&#65039;</button>
+          <button class="favorite-item-delete tip-side" type="button" data-tip="${lang === 'zh' ? '删除' : 'Delete'}">&times;</button>
+        </div>
       `;
       item.addEventListener('click', (e) => {
         if (e.target.classList.contains('favorite-item-delete')) return;
@@ -1944,16 +1962,11 @@ import { t, setLang } from './js/i18n.js';
   }
 
   function drawExportChips(ctx, result, isDark, accent, pink, sub, width) {
-    const chips = result.mode === 'rps'
-      ? [
-          { text: exportChipText(result, 0), label: t('rps_you'), win: result.outcome === 'win' },
-          { text: exportChipText(result, 1), label: t('rps_bot'), win: result.outcome === 'lose' }
-        ]
-      : result.options.map((option, index) => ({
-          text: exportChipText(result, index),
-          label: option,
-          win: index === result.winnerIndex
-        }));
+    const chips = result.options.map((option, index) => ({
+      text: exportChipText(result, index),
+      label: option,
+      win: index === result.winnerIndex
+    }));
     const chipWidth = Math.min(92, Math.floor((width - 96) / chips.length));
     const startX = (width - chipWidth * chips.length - 8 * (chips.length - 1)) / 2;
     chips.forEach((chip, index) => {

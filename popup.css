@@ -360,6 +360,15 @@ button {
   transform: translate(0, 0);
 }
 
+/* 收藏项操作按钮：水平并排，不重叠 */
+.fav-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
 .favorite-item-rename {
   border: 0;
   background: transparent;
@@ -373,6 +382,18 @@ button {
 .favorite-item-rename:hover {
   color: var(--accent);
   background: var(--accent-bg);
+}
+
+/* 卡片内控件 tooltip 向左弹出（卡片 overflow:hidden，下方弹出会被裁剪） */
+.tip-side::after {
+  top: 50%;
+  right: calc(100% + 8px);
+  transform: translateY(-50%) translateX(4px);
+}
+
+.tip-side:hover::after,
+.tip-side:focus-visible::after {
+  transform: translateY(-50%) translateX(0);
 }
 
 /* 首次使用引导 */
@@ -1106,6 +1127,21 @@ button {
   gap: 20px;
 }
 
+.rps-hand-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 72px;
+}
+
+.rps-hand-tag {
+  font-size: 10.5px;
+  font-weight: 900;
+  color: var(--muted);
+  letter-spacing: .5px;
+}
+
 .rps-hand {
   font-size: 54px;
   line-height: 1.15;
@@ -1552,6 +1588,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: static;
 }
 
 .favorite-item:hover .favorite-item-delete {
