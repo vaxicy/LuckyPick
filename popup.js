@@ -85,7 +85,17 @@
       undo: '撤销',
       history_deleted: '已删除 1 条记录',
       fav_deleted: '已删除收藏',
-      history_cleared: '已清空历史记录'
+      history_cleared: '已清空历史记录',
+      weight_tip: '提高该选项被选中的概率（×2）',
+      onboard_title_1: '欢迎使用 Lucky Pick 👋',
+      onboard_text_1: '输入 2~10 个选项，点击主按钮，让幸运替你决定。',
+      onboard_title_2: '🎮 四种玩法',
+      onboard_text_2: '右上角 ⚙️ 可切换骰子 / 硬币 / 转盘 / 抽签，还能开关音效与深色模式。',
+      onboard_title_3: '📋 历史与收藏',
+      onboard_text_3: '📋 保存最近 50 次结果，⭐ 收藏常用选项组合，随时一键加载。',
+      onboard_next: '下一步',
+      onboard_skip: '跳过',
+      onboard_start: '开始使用'
     },
     en: {
       app_name: 'LuckyPick',
@@ -169,7 +179,17 @@
       undo: 'Undo',
       history_deleted: '1 record deleted',
       fav_deleted: 'Favorite deleted',
-      history_cleared: 'History cleared'
+      history_cleared: 'History cleared',
+      weight_tip: 'Double the chance of this option (x2)',
+      onboard_title_1: 'Welcome to Lucky Pick 👋',
+      onboard_text_1: 'Enter 2-10 options, hit the main button, and let luck decide.',
+      onboard_title_2: '🎮 Four modes',
+      onboard_text_2: 'Tap ⚙️ to switch Dice / Coin / Wheel / Shuffle, toggle sound and dark mode.',
+      onboard_title_3: '📋 History & Favorites',
+      onboard_text_3: '📋 keeps your last 50 results, ⭐ saves option sets for one-tap reload.',
+      onboard_next: 'Next',
+      onboard_skip: 'Skip',
+      onboard_start: 'Get started'
     }
   };
 
@@ -462,6 +482,8 @@
   let animSpeed = 'normal';
   let history = [];
   let optionCount = 2;
+  let onboarded = false;
+  let onboardStep = 0;
   let isRolling = false;
   let lastResult = null;
   let saveTimer = null;
@@ -494,6 +516,7 @@
       applyModeUI();
       AudioSystem.init();
       loadFavorites();
+      if (!onboarded) startOnboarding();
     });
   }
 
@@ -548,6 +571,9 @@
     on('#btn-save-favorite', 'click', saveFavorite);
     on('#btn-favorites', 'click', openFavoritesPanel);
     on('#btn-close-favorites', 'click', closeFavoritesPanel);
+    on('#onboard-next', 'click', nextOnboard);
+    on('#onboard-skip', 'click', finishOnboarding);
+    on('#onboard-overlay', 'click', finishOnboarding);
     on('#btn-donate-wechat', 'click', () => {
       const url = chrome.runtime.getURL('donate.html');
       chrome.tabs.create({ url });
@@ -741,6 +767,18 @@
   }
 
   function bindRow(row) {
+    const weightButton = row.querySelector('.weight-btn');
+    if (weightButton) {
+      weightButton.addEventListener('click', () => {
+        const current = Number(row.dataset.weight) > 1 ? Number(row.dataset.weight) : 1;
+        const next = current > 1 ? 1 : 2;
+        row.dataset.weight = String(next);
+        row.classList.toggle('weighted', next > 1);
+        weightButton.classList.toggle('on', next > 1);
+        saveStateDebounced();
+        if (soundEnabled) AudioSystem.play('click');
+      });
+    }
     const button = row.querySelector('.delete-btn');
     if (!button) return;
     button.addEventListener('click', () => {
@@ -761,6 +799,7 @@
     row.innerHTML = `
       <span class="badge">${letter}</span>
       <input class="option-input" placeholder="${escapeAttr(t('opt_placeholder').replace('{0}', letter))}" value="${escapeAttr(value || '')}">
+      <button class="weight-btn" type="button" data-i18n-title="weight_tip" title="${escapeAttr(t('weight_tip'))}">&#11088;</button>
       <button class="delete-btn" type="button">&times;</button>
     `;
     const list = $('#options-list');
@@ -860,6 +899,8 @@
       if (badge) badge.textContent = String.fromCharCode(65 + index);
       row.classList.toggle('hidden', mode === 'coin' && index > 1);
       if (button) button.style.visibility = mode !== 'coin' && optionCount > 2 ? 'visible' : 'hidden';
+      const weightBtn = row.querySelector('.weight-btn');
+      if (weightBtn) weightBtn.style.visibility = mode === 'coin' ? 'hidden' : 'visible';
     });
     updatePlaceholders();
   }
@@ -875,6 +916,25 @@
 
   function getAllOptions() {
     return $$('.option-input').map((input) => input.value.trim());
+  }
+
+  function getOptionWeight(index) {
+    const row = $$('.option-row')[index];
+    if (!row) return 1;
+    const weight = Number(row.dataset.weight);
+    return weight > 1 ? weight : 1;
+  }
+
+  function weightedIndex(options) {
+    const weights = options.map((_, index) => getOptionWeight(index));
+    const total = weights.reduce((sum, weight) => sum + weight, 0);
+    if (!total) return Math.floor(Math.random() * options.length);
+    let roll = Math.random() * total;
+    for (let i = 0; i < weights.length; i += 1) {
+      roll -= weights[i];
+      if (roll <= 0) return i;
+    }
+    return options.length - 1;
   }
 
   function getModeOptions() {
@@ -921,7 +981,11 @@
   }
 
   function runDice(options) {
-    const rolls = options.map(() => Math.floor(Math.random() * 6) + 1);
+    const rolls = options.map((_, index) => {
+      const first = Math.floor(Math.random() * 6) + 1;
+      if (getOptionWeight(index) > 1) return Math.max(first, Math.floor(Math.random() * 6) + 1);
+      return first;
+    });
     const winners = getWinners(rolls);
     const winnerIndex = winners.length === 1 ? winners[0] : -1;
     const result = {
@@ -941,7 +1005,7 @@
   }
 
   function runCoin(options) {
-    const winnerIndex = Math.floor(Math.random() * 2);
+    const winnerIndex = weightedIndex(options);
     const result = {
       id: Date.now(),
       mode: 'coin',
@@ -958,7 +1022,7 @@
   }
 
   function runWheel(options) {
-    const winnerIndex = Math.floor(Math.random() * options.length);
+    const winnerIndex = weightedIndex(options);
     const slice = 360 / options.length;
     const finalRotation = (360 * 5) - (winnerIndex * slice + slice / 2);
     const result = {
@@ -979,7 +1043,7 @@
 
 
   function runSlot(options) {
-    const idx = Math.floor(Math.random() * options.length);
+    const idx = weightedIndex(options);
     const result = {
       id: Date.now(),
       mode: 'slot',
@@ -1719,6 +1783,40 @@
     closeFavoritesNameDialog();
   }
 
+  /* ===== 首次使用引导 ===== */
+  const ONBOARD_STEPS = 3;
+
+  function startOnboarding() {
+    onboardStep = 0;
+    renderOnboard();
+    $('#onboard-overlay')?.classList.remove('hidden');
+    $('#onboard-dialog')?.classList.remove('hidden');
+  }
+
+  function renderOnboard() {
+    setText('#onboard-title', t(`onboard_title_${onboardStep + 1}`));
+    setText('#onboard-text', t(`onboard_text_${onboardStep + 1}`));
+    setText('#onboard-next', onboardStep >= ONBOARD_STEPS - 1 ? t('onboard_start') : t('onboard_next'));
+    $$('.onboard-dot').forEach((dot, index) => dot.classList.toggle('active', index === onboardStep));
+  }
+
+  function nextOnboard() {
+    if (onboardStep < ONBOARD_STEPS - 1) {
+      onboardStep += 1;
+      renderOnboard();
+      return;
+    }
+    finishOnboarding();
+  }
+
+  function finishOnboarding() {
+    $('#onboard-overlay')?.classList.add('hidden');
+    $('#onboard-dialog')?.classList.add('hidden');
+    if (onboarded) return;
+    onboarded = true;
+    saveSettings();
+  }
+
   function renderSettings() {
     $$('#set-mode .seg-btn').forEach((button) => {
       button.classList.toggle('active', button.dataset.value === mode);
@@ -1743,6 +1841,7 @@
       incognito = Boolean(settings.incognito);
       soundEnabled = settings.soundEnabled !== false;
       animSpeed = settings.animSpeed || 'normal';
+      onboarded = Boolean(settings.onboarded);
       history = Array.isArray(result[STORAGE.history]) ? result[STORAGE.history] : [];
       done();
     });
@@ -1750,7 +1849,7 @@
 
   function saveSettings() {
     chrome.storage.local.set({
-      [STORAGE.settings]: { lang, theme, mode, rule: RULE, incognito, soundEnabled, animSpeed }
+      [STORAGE.settings]: { lang, theme, mode, rule: RULE, incognito, soundEnabled, animSpeed, onboarded }
     });
   }
 
@@ -1758,6 +1857,7 @@
     return {
       mode,
       options: $$('.option-input').map((input) => input.value),
+      weights: $$('.option-row').map((row) => (Number(row.dataset.weight) > 1 ? Number(row.dataset.weight) : 1)),
       lastResult,
       savedAt: Date.now()
     };
@@ -1791,6 +1891,16 @@
         if (list) list.innerHTML = '';
         optionCount = 0;
         state.options.slice(0, MAX_OPTIONS).forEach((option) => addRow(String(option || '')));
+        if (Array.isArray(state.weights)) {
+          $$('.option-row').forEach((row, index) => {
+            const weight = Number(state.weights[index]) > 1 ? Number(state.weights[index]) : 1;
+            if (weight <= 1) return;
+            row.dataset.weight = String(weight);
+            row.classList.add('weighted');
+            const btn = row.querySelector('.weight-btn');
+            if (btn) btn.classList.add('on');
+          });
+        }
       }
       if (state && state.lastResult && Array.isArray(state.lastResult.options)) {
         lastResult = state.lastResult;

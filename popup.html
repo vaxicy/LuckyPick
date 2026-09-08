@@ -26,11 +26,13 @@
           <div class="option-row">
             <span class="badge">A</span>
             <input class="option-input" data-i18n-placeholder="opt_placeholder_a" placeholder="Option A..." autofocus>
+            <button class="weight-btn" type="button" data-i18n-title="weight_tip" title="Weight">&#11088;</button>
             <button class="delete-btn" type="button">&times;</button>
           </div>
           <div class="option-row">
             <span class="badge">B</span>
             <input class="option-input" data-i18n-placeholder="opt_placeholder_b" placeholder="Option B...">
+            <button class="weight-btn" type="button" data-i18n-title="weight_tip" title="Weight">&#11088;</button>
             <button class="delete-btn" type="button">&times;</button>
           </div>
         </div>
@@ -188,6 +190,22 @@
     <div class="confirm-actions">
       <button id="confirm-cancel" class="confirm-btn" type="button" data-i18n="confirm_cancel">Cancel</button>
       <button id="confirm-ok" class="confirm-btn ok" type="button" data-i18n="confirm_ok">OK</button>
+    </div>
+  </div>
+
+  <div id="onboard-overlay" class="overlay hidden"></div>
+  <div id="onboard-dialog" class="onboard-dialog hidden">
+    <div class="onboard-icon">&#127922;</div>
+    <div id="onboard-title" class="onboard-title"></div>
+    <div id="onboard-text" class="onboard-text"></div>
+    <div class="onboard-dots">
+      <span class="onboard-dot active"></span>
+      <span class="onboard-dot"></span>
+      <span class="onboard-dot"></span>
+    </div>
+    <div class="onboard-actions">
+      <button id="onboard-skip" class="text-btn" type="button" data-i18n="onboard_skip">Skip</button>
+      <button id="onboard-next" class="confirm-btn ok" type="button" data-i18n="onboard_next">Next</button>
     </div>
   </div>
 
