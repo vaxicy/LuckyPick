@@ -594,7 +594,8 @@ button {
 }
 
 .mode-segmented .seg-btn {
-  padding: 0 4px;
+  padding: 0 8px;
+  font-size: 14px;
 }
 
 .seg-btn {
