@@ -944,10 +944,7 @@ button {
   min-height: 32px;
 }
 
-/* 第三个按钮（导出图片）独占一行，避免 2+1 孤儿布局 */
-.result-actions .action-btn:nth-child(3) {
-  grid-column: span 2;
-}
+/* 结果区四个按钮按 2x2 网格排列 */
 
 .action-btn {
   min-height: 32px;
@@ -974,6 +971,12 @@ button {
 .action-btn.primary:active {
   transform: scale(0.95);
   box-shadow: 0 2px 8px rgba(196, 122, 176, .20);
+}
+
+.action-btn.disabled {
+  opacity: .45;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .overlay {
@@ -1021,6 +1024,33 @@ button {
   min-height: 0;
   overflow-y: auto;
   padding: 8px;
+}
+
+/* 面板搜索框 */
+.panel-search {
+  padding: 8px 8px 0;
+}
+
+.panel-search-input {
+  width: 100%;
+  box-sizing: border-box;
+  height: 30px;
+  padding: 0 10px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--pill);
+  background: var(--card);
+  color: var(--text);
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.panel-search-input::placeholder {
+  color: var(--muted);
+}
+
+.panel-search-input:focus {
+  outline: none;
+  border-color: var(--accent);
 }
 
 .panel-foot {
@@ -1670,10 +1700,38 @@ button {
   background: var(--text);
   box-shadow: 0 8px 24px rgba(0, 0, 0, .18);
   transform: translateX(-50%);
-  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 280px;
+  white-space: normal;
   font-size: 12px;
   font-weight: 800;
   letter-spacing: .5px;
+
+.toast-text {
+  flex: 1 1 auto;
+}
+
+.toast-action {
+  flex: 0 0 auto;
+  padding: 3px 10px;
+  border: none;
+  border-radius: var(--pill);
+  color: var(--text);
+  background: var(--bg);
+  font-size: 11.5px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.toast-action:hover {
+  opacity: .85;
+}
+
+.toast-action:active {
+  transform: scale(0.95);
+}
 }
 
 ::-webkit-scrollbar {

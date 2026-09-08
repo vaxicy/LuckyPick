@@ -68,6 +68,7 @@
       <div id="result-timestamp" class="result-timestamp"></div>
       <div class="result-actions">
         <button id="btn-again" class="action-btn primary" type="button" data-i18n="again">Again</button>
+        <button id="btn-again-exclude" class="action-btn" type="button" data-i18n="again_exclude">Exclude</button>
         <button id="btn-copy" class="action-btn" type="button" data-i18n="copy_btn">&#128203; Copy</button>
         <button id="btn-export" class="action-btn" type="button" data-i18n="export_btn">Export</button>
       </div>
@@ -80,6 +81,9 @@
     <div class="panel-head">
       <h2 data-i18n="history_title">History</h2>
       <button id="btn-close-history" class="close-btn" type="button"><span class="close-mark">&times;</span></button>
+    </div>
+    <div class="panel-search hidden" id="history-search-wrap">
+      <input id="history-search" class="panel-search-input" type="text" data-i18n-placeholder="search_history">
     </div>
     <div id="history-list" class="panel-body"></div>
     <div class="panel-foot">
@@ -159,6 +163,9 @@
     </div>
     <div class="panel-body">
       <button id="btn-save-favorite" class="save-fav-btn" type="button" data-i18n="save_favorite">&#11088; <span data-i18n="save_favorite">Save current options</span></button>
+      <div class="panel-search hidden" id="favorites-search-wrap">
+        <input id="favorites-search" class="panel-search-input" type="text" data-i18n-placeholder="search_favorites">
+      </div>
       <div id="favorites-list" class="favorites-list"></div>
     </div>
   </aside>

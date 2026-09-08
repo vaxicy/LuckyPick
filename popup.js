@@ -76,7 +76,16 @@
       bulk_placeholder: '每行一个选项，或用逗号 / 顿号分隔',
       bulk_confirm: '导入',
       bulk_added: '已导入 {0} 个选项',
-      bulk_truncated: '已导入 {0} 个（上限 {1} 个）'
+      bulk_truncated: '已导入 {0} 个（上限 {1} 个）',
+      again_exclude: '🔄 排除它再来',
+      need_two_options: '至少需要 2 个选项才能继续',
+      search_history: '搜索历史…',
+      search_favorites: '搜索收藏…',
+      no_match: '没有匹配的记录',
+      undo: '撤销',
+      history_deleted: '已删除 1 条记录',
+      fav_deleted: '已删除收藏',
+      history_cleared: '已清空历史记录'
     },
     en: {
       app_name: 'LuckyPick',
@@ -151,7 +160,16 @@
       bulk_placeholder: 'One per line, or separated by commas',
       bulk_confirm: 'Import',
       bulk_added: '{0} options imported',
-      bulk_truncated: '{0} imported (max {1})'
+      bulk_truncated: '{0} imported (max {1})',
+      again_exclude: '🔄 Exclude & again',
+      need_two_options: 'Need at least 2 options',
+      search_history: 'Search history...',
+      search_favorites: 'Search favorites...',
+      no_match: 'No matching records',
+      undo: 'Undo',
+      history_deleted: '1 record deleted',
+      fav_deleted: 'Favorite deleted',
+      history_cleared: 'History cleared'
     }
   };
 
@@ -496,6 +514,15 @@
     on('#btn-again', 'click', resetToInput);
     on('#btn-export', 'click', exportAsImage);
     on('#btn-copy', 'click', copyResult);
+    on('#btn-again-exclude', 'click', rollAgainExcludingWinner);
+    on('#history-search', 'input', (event) => {
+      historyQuery = event.target.value.trim();
+      renderHistory();
+    });
+    on('#favorites-search', 'input', (event) => {
+      favQuery = event.target.value.trim();
+      renderFavorites();
+    });
     on('#btn-bulk-add', 'click', toggleBulkBox);
     on('#bulk-cancel', 'click', closeBulkBox);
     on('#bulk-ok', 'click', () => {
@@ -1261,6 +1288,14 @@
     else if (result.mode === 'slot') renderSlotVisual(visual, result);
     else renderDiceVisual(visual, result);
 
+    const excludeButton = $('#btn-again-exclude');
+    if (excludeButton) {
+      const canExclude = optionCount > 2 && !result.isTie;
+      excludeButton.disabled = !canExclude;
+      excludeButton.classList.toggle('disabled', !canExclude);
+      excludeButton.title = canExclude ? '' : t('need_two_options');
+    }
+
     spawnConfetti();
 
     // 显示时间戳
@@ -1353,6 +1388,8 @@
   function renderHistory() {
     const list = $('#history-list');
     if (!list) return;
+    const searchWrap = $('#history-search-wrap');
+    if (searchWrap) searchWrap.classList.toggle('hidden', incognito || !history.length);
     if (incognito) {
       list.innerHTML = `<div class="empty-state">${t('history_incognito')}</div>`;
       if ($('#btn-clear-history')) $('#btn-clear-history').style.display = 'none';
@@ -1368,8 +1405,14 @@
       return;
     }
 
+    const source = history.filter((record) => matchRecord(record, historyQuery));
+    if (!source.length) {
+      list.innerHTML = `<div class="empty-state">${t('no_match')}</div>`;
+      return;
+    }
+
     list.innerHTML = '';
-    history.slice(0, 20).forEach((record, recordIndex) => {
+    source.slice(0, 20).forEach((record, recordIndex) => {
       const item = document.createElement('div');
       item.className = 'history-item';
       item.dataset.hint = lang === 'zh' ? '点击加载' : 'Click to load';
@@ -1393,8 +1436,17 @@
       if (deleteBtn) {
         deleteBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          history.splice(recordIndex, 1);
+          const realIndex = history.indexOf(record);
+          if (realIndex < 0) return;
+          const removed = history.splice(realIndex, 1)[0];
           chrome.storage.local.set({ [STORAGE.history]: history }, renderHistory);
+          showToast(t('history_deleted'), {
+            actionText: t('undo'),
+            onAction: () => {
+              history.splice(realIndex, 0, removed);
+              chrome.storage.local.set({ [STORAGE.history]: history }, renderHistory);
+            }
+          });
         });
       }
       list.appendChild(item);
@@ -1430,13 +1482,64 @@
   function clearHistory() {
     showConfirm(t('confirm_clear')).then((ok) => {
       if (!ok) return;
+      if (!history.length) return;
+      const backup = history.slice();
       history = [];
       chrome.storage.local.set({ [STORAGE.history]: [] }, renderHistory);
+      showToast(t('history_cleared'), {
+        actionText: t('undo'),
+        onAction: () => {
+          history = backup.slice();
+          chrome.storage.local.set({ [STORAGE.history]: history }, renderHistory);
+        }
+      });
     });
   }
 
   /* ===== 收藏功能 ===== */
   let favorites = [];
+  let favQuery = '';
+  let historyQuery = '';
+
+  function matchRecord(record, query) {
+    if (!query) return true;
+    const text = `${record.isTie ? t('tie_title') : record.winner || ''} ${(record.options || []).join(' ')}`;
+    return text.toLowerCase().includes(query.toLowerCase());
+  }
+
+  function matchFavorite(fav, query) {
+    if (!query) return true;
+    const text = `${fav.name || ''} ${(fav.options || []).join(' ')}`;
+    return text.toLowerCase().includes(query.toLowerCase());
+  }
+
+  function rollAgainExcludingWinner() {
+    if (!lastResult || lastResult.isTie || !lastResult.winner) {
+      resetToInput();
+      return;
+    }
+    if (optionCount <= 2) {
+      showToast(t('need_two_options'));
+      return;
+    }
+    const winner = String(lastResult.winner);
+    const target = $$('.option-input').find((input) => input.value.trim() === winner);
+    if (target) {
+      const row = target.closest('.option-row');
+      if (row) {
+        row.remove();
+        optionCount -= 1;
+      }
+    }
+    reindexRows();
+    saveStateDebounced();
+    resetToInput();
+    if (getModeOptions().length < 2) {
+      showToast(t('need_two_options'));
+      return;
+    }
+    setTimeout(doPick, 60);
+  }
 
   function loadFavorites(done) {
     chrome.storage.local.get([STORAGE.favorites], (result) => {
@@ -1485,8 +1588,17 @@
   function deleteFavorite(id) {
     showConfirm(t('delete_favorite')).then((ok) => {
       if (!ok) return;
-      favorites = favorites.filter(f => f.id !== id);
+      const index = favorites.findIndex(f => f.id === id);
+      if (index < 0) return;
+      const removed = favorites.splice(index, 1)[0];
       chrome.storage.local.set({ [STORAGE.favorites]: favorites }, renderFavorites);
+      showToast(t('fav_deleted'), {
+        actionText: t('undo'),
+        onAction: () => {
+          favorites.splice(index, 0, removed);
+          chrome.storage.local.set({ [STORAGE.favorites]: favorites }, renderFavorites);
+        }
+      });
     });
   }
 
@@ -1512,6 +1624,8 @@
   function renderFavorites() {
     const list = $('#favorites-list');
     if (!list) return;
+    const favSearchWrap = $('#favorites-search-wrap');
+    if (favSearchWrap) favSearchWrap.classList.toggle('hidden', !favorites.length);
     if (!favorites.length) {
       list.innerHTML = `
         <div class="favorites-empty">
@@ -1521,9 +1635,18 @@
         </div>`;
       return;
     }
+    const source = favorites.filter((fav) => matchFavorite(fav, favQuery));
+    if (!source.length) {
+      list.innerHTML = `
+        <div class="favorites-empty">
+          <div class="fav-empty-character">🔍</div>
+          <div class="favorites-empty-title">${t('no_match')}</div>
+        </div>`;
+      return;
+    }
     list.innerHTML = '';
     const MODE_ICONS = { dice: '🎲', coin: '🪙', wheel: '🎡', slot: '🎲' };
-    favorites.forEach((fav) => {
+    source.forEach((fav) => {
       const item = document.createElement('div');
       item.className = 'favorite-item';
       const modeIcon = MODE_ICONS[fav.mode] || '🎲';
@@ -1553,6 +1676,9 @@
 
   function openFavoritesPanel() {
     closeFavoritesNameDialog();
+    favQuery = '';
+    const favSearch = $('#favorites-search');
+    if (favSearch) favSearch.value = '';
     loadFavorites(() => {
       renderFavorites();
       $('#favorites-panel')?.classList.remove('hidden');
@@ -1571,6 +1697,9 @@
   }
 
   function openHistoryPanel() {
+    historyQuery = '';
+    const historySearch = $('#history-search');
+    if (historySearch) historySearch.value = '';
     renderHistory();
     $('#history-panel')?.classList.remove('hidden');
     $('#panel-overlay')?.classList.remove('hidden');
@@ -1857,14 +1986,31 @@
     });
   }
 
-  function showToast(message) {
+  function showToast(message, options) {
     const old = $('.toast');
     if (old) old.remove();
     const toast = document.createElement('div');
     toast.className = 'toast';
-    toast.textContent = message;
+    const label = document.createElement('span');
+    label.className = 'toast-text';
+    label.textContent = message;
+    toast.appendChild(label);
+
+    const hasAction = Boolean(options && options.actionText && typeof options.onAction === 'function');
+    if (hasAction) {
+      const action = document.createElement('button');
+      action.className = 'toast-action';
+      action.type = 'button';
+      action.textContent = options.actionText;
+      action.addEventListener('click', () => {
+        options.onAction();
+        toast.remove();
+      });
+      toast.appendChild(action);
+    }
+
     document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 1500);
+    setTimeout(() => toast.remove(), hasAction ? 4000 : 1500);
   }
 
   function createRipple(event) {
