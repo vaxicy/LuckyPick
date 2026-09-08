@@ -8,9 +8,9 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "store-screenshots"
-SRC = OUT / "source-captures"
-OUT.mkdir(exist_ok=True)
+OUT = ROOT / "store-assets" / "promo"
+SRC = ROOT / "store-assets" / "source-captures"
+OUT.mkdir(parents=True, exist_ok=True)
 
 TEXT = "#4a3860"
 SUB = "#8e7aaa"
@@ -91,7 +91,7 @@ def make_small_bilingual():
     text(d, "Lightweight Decision Helper", (28, 140), 12, SUB)   # English
 
     # Popup screenshot
-    shot = load_capture("capture-main.png").crop((0, 2, 604, 467))
+    shot = load_capture("capture-main.png")
     shot = fit(shot, 200, 156)
     shadow_paste(canvas, shot, (210, 58), 20)
 
@@ -118,8 +118,8 @@ def make_marquee_bilingual():
     text(d, "Lightweight & Cute Decision Helper", (88, 204), 22, SUB)  # English
 
     # Bilingual description
-    text(d, "输入选项，让选择变得轻松又有趣。", (88, 250), 21, SUB)       # Chinese
-    text(d, "Type options and make decisions fun & easy.", (88, 278), 19, SUB)  # English
+    text(d, "五种玩法：骰子 / 硬币 / 转盘 / 抽签 / 猜拳", (88, 250), 21, SUB)       # Chinese
+    text(d, "Dice · Coin · Wheel · Shuffle · Rock-Paper-Scissors", (88, 278), 19, SUB)  # English
 
     # CTA buttons — bilingual, centered vertically in 50px-tall buttons
     btn_h = 50
@@ -132,15 +132,15 @@ def make_marquee_bilingual():
     text(d, "Ready to Use", (132, btn_center_y + 4), 13, "#ffffff")
 
     rr(d, (296, btn_y, 506, btn_y + btn_h), 22, "#ffffff", ACCENT2, 2)
-    text(d, "轻量 · 可爱 · 有趣", (320, btn_center_y - 15), 16, ACCENT, True)
-    text(d, "Lightweight · Cute · Fun", (322, btn_center_y + 5), 13, ACCENT)
+    text(d, "中 / 英 / 西 三语", (322, btn_center_y - 15), 16, ACCENT, True)
+    text(d, "3 Languages · Fun", (330, btn_center_y + 5), 13, ACCENT)
 
     # Popup screenshots (stacked, same as original layout)
-    dice = fit(load_capture("capture-dice.png").crop((0, 1, 598, 424)), 430, 306)
-    main = fit(load_capture("capture-main.png").crop((0, 2, 604, 467)), 468, 364)
+    rps = fit(load_capture("capture-rps-battle.png"), 430, 306)
+    main = fit(load_capture("capture-main.png"), 468, 364)
     settings = fit(load_capture("capture-settings.png"), 396, 300)
 
-    shadow_paste(canvas, dice, (780, 64), 22)
+    shadow_paste(canvas, rps, (780, 64), 22)
     shadow_paste(canvas, main, (630, 142), 22)
     shadow_paste(canvas, settings, (930, 240), 22)
 

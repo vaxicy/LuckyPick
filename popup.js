@@ -449,6 +449,7 @@ import { t, setLang } from './js/i18n.js';
     on('#options-list', 'input', (event) => {
       if (event.target.classList.contains('option-input')) {
         saveStateDebounced();
+        updateRollButtonState();
         // 实时校验重复选项
         const currentValue = event.target.value.trim();
         const allInputs = $$('.option-input');
