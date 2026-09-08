@@ -529,6 +529,9 @@ import { t, setLang } from './js/i18n.js';
     $$('[data-i18n-title]').forEach((element) => {
       element.title = t(element.dataset.i18nTitle);
     });
+    $$('[data-i18n-tip]').forEach((element) => {
+      element.dataset.tip = t(element.dataset.i18nTip);
+    });
     updatePlaceholders();
   }
 
@@ -584,6 +587,7 @@ import { t, setLang } from './js/i18n.js';
         weightButton.classList.toggle('on', next > 1);
         saveStateDebounced();
         if (soundEnabled) AudioSystem.play('click');
+        if (next > 1 && allOptionsWeighted()) showToast(t('all_weighted'));
       });
     }
     const button = row.querySelector('.delete-btn');
@@ -606,8 +610,8 @@ import { t, setLang } from './js/i18n.js';
     row.innerHTML = `
       <span class="badge">${letter}</span>
       <input class="option-input" placeholder="${escapeAttr(t('opt_placeholder').replace('{0}', letter))}" value="${escapeAttr(value || '')}">
-      <button class="weight-btn" type="button" data-i18n-title="weight_tip" title="${escapeAttr(t('weight_tip'))}">&#11088;</button>
       <button class="delete-btn" type="button">&times;</button>
+      <button class="weight-btn tip-left" type="button" data-i18n-tip="weight_tip" data-tip="${escapeAttr(t('weight_tip'))}">&#11088;</button>
     `;
     const list = $('#options-list');
     if (!list) return;
@@ -742,6 +746,14 @@ import { t, setLang } from './js/i18n.js';
       if (roll <= 0) return i;
     }
     return options.length - 1;
+  }
+
+  function allOptionsWeighted() {
+    const filled = $$('.option-row').filter((row) => {
+      const input = row.querySelector('.option-input');
+      return input && input.value.trim();
+    });
+    return filled.length > 1 && filled.every((row) => Number(row.dataset.weight) > 1);
   }
 
   function getModeOptions() {
@@ -1162,9 +1174,11 @@ import { t, setLang } from './js/i18n.js';
     const excludeButton = $('#btn-again-exclude');
     if (excludeButton) {
       const canExclude = optionCount > 2 && !result.isTie;
+      excludeButton.classList.toggle('hidden', !canExclude);
       excludeButton.disabled = !canExclude;
-      excludeButton.classList.toggle('disabled', !canExclude);
-      excludeButton.title = canExclude ? '' : t('need_two_options');
+      excludeButton.dataset.tip = canExclude
+        ? t('again_exclude_title').replace('{0}', result.winner || '')
+        : '';
     }
 
     spawnConfetti();
@@ -1425,11 +1439,23 @@ import { t, setLang } from './js/i18n.js';
       showToast(t('min_options'));
       return;
     }
+    favorites.unshift({ id: Date.now(), name: options.join(' / '), options, mode });
+    chrome.storage.local.set({ [STORAGE.favorites]: favorites }, () => {
+      renderFavorites();
+      showToast(t('fav_saved'));
+    });
+  }
+
+  function renameFavorite(id) {
+    const fav = favorites.find((item) => item.id === id);
+    if (!fav) return;
     const overlay = $('#fav-name-overlay');
     const dialog = $('#fav-name-dialog');
     const input = $('#fav-name-input');
     if (!dialog || !input) return;
-    input.value = '';
+    const titleNode = dialog.querySelector('.fav-name-title');
+    if (titleNode) titleNode.textContent = t('rename_favorite');
+    input.value = fav.name || '';
     overlay?.classList.remove('hidden');
     dialog.classList.remove('hidden');
     setTimeout(() => input.focus(), 100);
@@ -1438,21 +1464,18 @@ import { t, setLang } from './js/i18n.js';
       overlay?.classList.add('hidden');
       dialog.classList.add('hidden');
       if (!ok || !input.value.trim()) return;
-      const name = input.value.trim();
-      const id = Date.now();
-      favorites.unshift({ id, name, options: getAllOptions().filter(Boolean), mode });
+      fav.name = input.value.trim();
       chrome.storage.local.set({ [STORAGE.favorites]: favorites }, () => {
         renderFavorites();
-        showToast(lang === 'zh' ? '已保存到收藏' : 'Saved to favorites');
+        showToast(t('fav_updated'));
       });
     };
 
-    const okBtn = $('#fav-name-ok');
-    const cancelBtn = $('#fav-name-cancel');
-    const overlayNode = overlay;
-    if (okBtn) okBtn.onclick = () => finish(true);
-    if (cancelBtn) cancelBtn.onclick = () => finish(false);
-    if (overlayNode) overlayNode.onclick = () => finish(false);
+    const okButton = $('#fav-name-ok');
+    const cancelButton = $('#fav-name-cancel');
+    if (okButton) okButton.onclick = () => finish(true);
+    if (cancelButton) cancelButton.onclick = () => finish(false);
+    if (overlay) overlay.onclick = () => finish(false);
     input.onkeydown = (e) => { if (e.key === 'Enter') finish(true); if (e.key === 'Escape') finish(false); };
   }
 
@@ -1502,7 +1525,7 @@ import { t, setLang } from './js/i18n.js';
         <div class="favorites-empty">
           <div class="fav-empty-character">⭐</div>
           <div class="favorites-empty-title">${t('favorites_empty')}</div>
-          <div class="favorites-empty-hint">${lang === 'zh' ? '点击上方按钮保存当前选项组' : 'Tap the button above to save current options'}</div>
+          <div class="favorites-empty-hint">${t('favorites_empty_hint')}</div>
         </div>`;
       return;
     }
@@ -1528,12 +1551,20 @@ import { t, setLang } from './js/i18n.js';
           <div class="favorite-item-name">${escapeHtml(fav.name)}</div>
           <div class="favorite-item-options">${(fav.options || []).slice(0, 3).map(o => escapeHtml(o)).join(', ')}${optCount > 3 ? '...' : ''}</div>
         </div>
+        <button class="favorite-item-rename" type="button" data-tip="${lang === 'zh' ? '重命名' : 'Rename'}">&#9999;&#65039;</button>
         <button class="favorite-item-delete" type="button" title="${lang === 'zh' ? '删除' : 'Delete'}">×</button>
       `;
       item.addEventListener('click', (e) => {
         if (e.target.classList.contains('favorite-item-delete')) return;
         loadFavorite(fav);
       });
+      const renameBtn = item.querySelector('.favorite-item-rename');
+      if (renameBtn) {
+        renameBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          renameFavorite(fav.id);
+        });
+      }
       const deleteBtn = item.querySelector('.favorite-item-delete');
       if (deleteBtn) {
         deleteBtn.addEventListener('click', (e) => {

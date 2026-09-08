@@ -260,7 +260,7 @@ button {
   cursor: pointer;
   font-size: 11px;
   line-height: 1;
-  opacity: .4;
+  opacity: .25;
   transition: opacity .15s ease, transform .15s ease, background .15s ease;
 }
 
@@ -285,8 +285,85 @@ button {
 }
 
 .option-row.weighted .badge {
+  position: relative;
   color: #fff;
   background: var(--accent);
+}
+
+/* 加权行角标，状态一目了然 */
+.option-row.weighted .badge::after {
+  content: '×2';
+  position: absolute;
+  top: -5px;
+  right: -7px;
+  min-width: 16px;
+  padding: 1px 3px;
+  border-radius: 7px;
+  background: #f0b429;
+  color: #fff;
+  font-size: 8px;
+  font-weight: 900;
+  line-height: 1.2;
+  box-shadow: 0 1px 4px rgba(240, 180, 41, .5);
+}
+
+/* 自定义 tooltip（替代原生 title，解决黑块溢出与延迟问题） */
+[data-tip] {
+  position: relative;
+}
+
+[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 7px);
+  right: 50%;
+  transform: translate(50%, -4px);
+  z-index: 80;
+  padding: 6px 10px;
+  border-radius: 9px;
+  background: var(--text);
+  color: var(--bg);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .3px;
+  white-space: nowrap;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .22);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .16s ease, transform .16s ease;
+}
+
+[data-tip]:hover::after,
+[data-tip]:focus-visible::after {
+  opacity: 1;
+  transform: translate(50%, 0);
+}
+
+/* 靠右的控件 tooltip 向左弹出，避免溢出容器被裁剪 */
+.tip-left::after {
+  top: 50%;
+  right: calc(100% + 8px);
+  transform: translateY(-50%) translateX(4px);
+}
+
+.tip-left:hover::after,
+.tip-left:focus-visible::after {
+  transform: translateY(-50%) translateX(0);
+}
+
+.favorite-item-rename {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.favorite-item-rename:hover {
+  color: var(--accent);
+  background: var(--accent-bg);
 }
 
 /* 首次使用引导 */
@@ -397,7 +474,7 @@ button {
   height: 34px;
   margin-top: 7px;
   padding: 0 10px;
-  border: 1.5px dashed var(--border);
+  border: 1.5px solid transparent;
   border-radius: var(--r);
   color: var(--sub);
   background: transparent;
@@ -1043,7 +1120,7 @@ button {
 
 /* 结果页时间戳 */
 .result-timestamp {
-  margin-top: 5px;
+  margin: 5px 0 9px;
   color: var(--muted);
   font-size: 10.5px;
   text-align: center;
@@ -1052,6 +1129,11 @@ button {
 .result-actions .action-btn {
   font-size: 12px;
   min-height: 32px;
+}
+
+/* 按钮为奇数个时（如"换一个"隐藏后）最后一个独占一行，避免 2+1 孤儿布局 */
+.result-actions .action-btn:last-child:nth-child(odd) {
+  grid-column: span 2;
 }
 
 /* 结果区四个按钮按 2x2 网格排列 */
