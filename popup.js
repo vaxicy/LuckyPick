@@ -443,7 +443,7 @@ import { t, setLang } from './js/i18n.js';
       renderSettings();
       saveSettings();
       // 显示无痕模式状态提示
-      showToast(incognito ? (lang === 'zh' ? '🕶️ 无痕模式已开启' : '🕶️ Incognito ON') : (lang === 'zh' ? '🕶️ 无痕模式已关闭' : '🕶️ Incognito OFF'));
+      showToast(incognito ? t('incognito_on_toast') : t('incognito_off_toast'));
     });
 
     on('#options-list', 'input', (event) => {

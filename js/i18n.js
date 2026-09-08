@@ -118,7 +118,10 @@ export const I18N = {
       click_load: '点击加载',
       delete_action: '删除',
       rename_action: '重命名',
-      list_sep: '、'
+      list_sep: '、',
+      donate_group_title: '☕ 支持作者',
+      incognito_on_toast: '🕶️ 无痕模式已开启',
+      incognito_off_toast: '🕶️ 无痕模式已关闭'
     },
     en: {
       app_name: 'LuckyPick',
@@ -239,7 +242,10 @@ export const I18N = {
       click_load: 'Click to load',
       delete_action: 'Delete',
       rename_action: 'Rename',
-      list_sep: ', '
+      list_sep: ', ',
+      donate_group_title: '☕ Support the author',
+      incognito_on_toast: '🕶️ Incognito ON',
+      incognito_off_toast: '🕶️ Incognito OFF'
     },
     es: {
       app_name: 'Lucky Pick',
@@ -355,6 +361,9 @@ export const I18N = {
       delete_action: 'Eliminar',
       rename_action: 'Renombrar',
       list_sep: ', ',
+      donate_group_title: '☕ Apoya al autor',
+      incognito_on_toast: '🕶️ Modo incógnito activado',
+      incognito_off_toast: '🕶️ Modo incógnito desactivado',
       rps_prompt: '¡La opción del lado ganador será elegida!',
       rps_hint: 'A = Bot, B = Tú. Gana y elige.',
       rps_ph_a: 'Opción del bot...',
