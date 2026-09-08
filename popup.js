@@ -7,7 +7,12 @@ import { t, setLang } from './js/i18n.js';
   const MAX_HISTORY = 50;
   const RULE = 'high';
   const SPEED = { fast: 0.65, normal: 1, slow: 1.45 };
-  const MODES = ['dice', 'coin', 'wheel', 'slot'];
+  const MODES = ['dice', 'coin', 'wheel', 'slot', 'rps'];
+  const RPS_HANDS = {
+    rock: { emoji: '✊', beats: 'scissors' },
+    paper: { emoji: '✋', beats: 'rock' },
+    scissors: { emoji: '✌️', beats: 'paper' }
+  };
   const WHEEL_COLORS = [
     '#E88BA8', '#7C6FBE', '#6BAFE0', '#7BC89E', '#F1C56D',
     '#B58BE8', '#E89A6B', '#6BC8C0', '#C97BA8', '#9BB86B'
@@ -53,6 +58,10 @@ import { t, setLang } from './js/i18n.js';
 
           case 'slot':
             this.playSlotSound(now);
+            break;
+
+          case 'rps':
+            this.playDiceSound(now);
             break;
 
           case 'win':
@@ -492,6 +501,8 @@ import { t, setLang } from './js/i18n.js';
   function setMode(nextMode) {
     if (!MODES.includes(nextMode) || nextMode === mode) return;
     mode = nextMode;
+    isRolling = false;
+    $('#btn-roll')?.classList.remove('rolling');
     clearResultState();
     applyModeUI();
     renderSettings();
@@ -507,6 +518,8 @@ import { t, setLang } from './js/i18n.js';
     const bulkButton = $('#btn-bulk-add');
     if (bulkButton) bulkButton.classList.toggle('hidden', mode === 'coin');
     if (mode === 'coin') closeBulkBox();
+    const optionsBox = document.querySelector('.options-box');
+    if (optionsBox) optionsBox.classList.toggle('hidden', mode === 'rps');
     const hint = $('#mode-hint');
     if (hint) {
       const show = mode === 'coin' && optionCount > 2;
@@ -677,8 +690,17 @@ import { t, setLang } from './js/i18n.js';
   function copyResult() {
     if (!lastResult) return;
     const winner = lastResult.isTie ? t('tie_title') : lastResult.winner;
-    const options = (lastResult.options || []).join(lang === 'zh' ? '、' : ', ');
-    const text = t('copy_tpl').replace('{0}', winner || '').replace('{1}', options);
+    let text;
+    if (lastResult.mode === 'rps') {
+      const hands = { rock: '✊', paper: '✋', scissors: '✌️' };
+      text = t('rps_copy_tpl')
+        .replace('{0}', hands[lastResult.playerHand] || '✊')
+        .replace('{1}', hands[lastResult.botHand] || '✌️')
+        .replace('{2}', winner || '');
+    } else {
+      const options = (lastResult.options || []).join(lang === 'zh' ? '、' : ', ');
+      text = t('copy_tpl').replace('{0}', winner || '').replace('{1}', options);
+    }
     const done = () => showToast(t('copied'));
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
@@ -766,7 +788,8 @@ import { t, setLang } from './js/i18n.js';
     const options = getModeOptions();
     const rollButton = $('#btn-roll');
     if (rollButton) {
-      const disabled = options.length < 2;
+      // 猜拳模式不需要选项
+      const disabled = mode !== 'rps' && options.length < 2;
       rollButton.disabled = disabled;
       rollButton.title = disabled ? t('min_options') : '';
       rollButton.classList.toggle('disabled', disabled);
@@ -776,7 +799,7 @@ import { t, setLang } from './js/i18n.js';
   function doPick() {
     if (isRolling) return;
     const options = getModeOptions();
-    if (options.length < 2) {
+    if (mode !== 'rps' && options.length < 2) {
       showToast(t('min_options'));
       return;
     }
@@ -796,6 +819,7 @@ import { t, setLang } from './js/i18n.js';
     if (mode === 'coin') runCoin(options);
     else if (mode === 'wheel') runWheel(options);
     else if (mode === 'slot') runSlot(options);
+    else if (mode === 'rps') runRps();
     else runDice(options);
   }
 
@@ -874,6 +898,89 @@ import { t, setLang } from './js/i18n.js';
     };
     buildSlotStage(options);
     animateSlot(idx, options.length, () => finishResult(result));
+  }
+
+  function runRps() {
+    buildRpsStage();
+  }
+
+  function buildRpsStage() {
+    const stage = $('#dice-stage');
+    if (!stage) return;
+    stage.className = 'rps-stage';
+    stage.innerHTML = `
+      <div class="rps-arena">
+        <div class="rps-hand" id="rps-player">✊</div>
+        <div class="rps-vs">VS</div>
+        <div class="rps-hand" id="rps-bot">✊</div>
+      </div>
+      <div class="rps-choices" id="rps-choices">
+        <button class="rps-choice" type="button" data-hand="rock">✊</button>
+        <button class="rps-choice" type="button" data-hand="paper">✋</button>
+        <button class="rps-choice" type="button" data-hand="scissors">✌️</button>
+      </div>
+      <div class="rps-prompt">${escapeHtml(t('rps_prompt'))}</div>
+    `;
+    $$('#rps-choices .rps-choice').forEach((button) => {
+      button.addEventListener('click', () => onRpsPick(button.dataset.hand));
+    });
+    if ($('#progress-bar')) $('#progress-bar').style.width = '0%';
+  }
+
+  function onRpsPick(playerHand) {
+    if (!RPS_HANDS[playerHand] || !isRolling) return;
+    $('#rps-choices')?.classList.add('hidden');
+    document.querySelector('.rps-prompt')?.classList.add('hidden');
+    const botHand = ['rock', 'paper', 'scissors'][Math.floor(Math.random() * 3)];
+    const playerEl = $('#rps-player');
+    const botEl = $('#rps-bot');
+    const duration = animDuration(1100);
+    const shakeEmojis = ['✊', '✋', '✌️'];
+    const start = performance.now();
+
+    function tick(now) {
+      const progress = Math.min((now - start) / duration, 1);
+      if ($('#progress-bar')) $('#progress-bar').style.width = `${progress * 100}%`;
+      if (progress < 1) {
+        const shake = shakeEmojis[Math.floor(now / 140) % 3];
+        if (playerEl) playerEl.textContent = shake;
+        if (botEl) botEl.textContent = shake;
+        requestAnimationFrame(tick);
+      } else {
+        showRpsHands(playerHand, botHand);
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function showRpsHands(playerHand, botHand) {
+    const playerEl = $('#rps-player');
+    const botEl = $('#rps-bot');
+    if (playerEl) {
+      playerEl.textContent = RPS_HANDS[playerHand].emoji;
+      playerEl.classList.add('landed');
+    }
+    if (botEl) {
+      botEl.textContent = RPS_HANDS[botHand].emoji;
+      botEl.classList.add('landed');
+    }
+    const isTie = playerHand === botHand;
+    const playerWins = RPS_HANDS[playerHand].beats === botHand;
+    const outcome = isTie ? 'tie' : (playerWins ? 'win' : 'lose');
+    const labels = { win: t('rps_win'), lose: t('rps_lose'), tie: t('tie_title') };
+    const result = {
+      id: Date.now(),
+      mode: 'rps',
+      options: [],
+      playerHand,
+      botHand,
+      outcome,
+      winnerIndex: -1,
+      winner: labels[outcome],
+      isTie,
+      createdAt: new Date().toISOString()
+    };
+    setTimeout(() => finishResult(result), 520);
   }
 
   function buildSlotStage(options) {
@@ -1148,7 +1255,8 @@ import { t, setLang } from './js/i18n.js';
           'dice': ['🎲', '🎯', '⭐'],
           'coin': ['🪙', '✨', '💫'],
           'wheel': ['🎡', '🎯', '🌟'],
-          'slot': ['🎲', '✨', '🎋']
+          'slot': ['🎲', '✨', '🎋'],
+          'rps': ['✊', '✌️', '🤜']
         };
         const modeEmojis = emojis[result.mode] || emojis['dice'];
         character.textContent = modeEmojis[Math.floor(Math.random() * modeEmojis.length)];
@@ -1169,6 +1277,7 @@ import { t, setLang } from './js/i18n.js';
     if (result.mode === 'coin') renderCoinVisual(visual, result);
     else if (result.mode === 'wheel') renderWheelVisual(visual, result);
     else if (result.mode === 'slot') renderSlotVisual(visual, result);
+    else if (result.mode === 'rps') renderRpsVisual(visual, result);
     else renderDiceVisual(visual, result);
 
     const excludeButton = $('#btn-again-exclude');
@@ -1247,6 +1356,23 @@ import { t, setLang } from './js/i18n.js';
           <span class="slot-num">${index + 1}</span>
         </div>
         <div class="score-label">${escapeHtml(option)}</div>
+      `;
+      visual.appendChild(chip);
+    });
+  }
+
+  function renderRpsVisual(visual, result) {
+    const entries = [
+      { label: t('rps_you'), emoji: (RPS_HANDS[result.playerHand] || {}).emoji || '✊', win: result.outcome === 'win' },
+      { label: t('rps_bot'), emoji: (RPS_HANDS[result.botHand] || {}).emoji || '✌️', win: result.outcome === 'lose' }
+    ];
+    entries.forEach((entry) => {
+      const chip = document.createElement('div');
+      chip.className = 'score-chip';
+      if (entry.win) chip.classList.add('win');
+      chip.innerHTML = `
+        <div class="score-number">${entry.emoji}</div>
+        <div class="score-label">${escapeHtml(entry.label)}</div>
       `;
       visual.appendChild(chip);
     });
@@ -1345,6 +1471,10 @@ import { t, setLang } from './js/i18n.js';
     }
     if (record.mode === 'coin') return record.options.join(' / ');
     if (record.mode === 'slot') return record.options.map((option, index) => `${index + 1}. ${option}`).join(' / ');
+    if (record.mode === 'rps') {
+      const hands = { rock: '✊', paper: '✋', scissors: '✌️' };
+      return `${t('rps_you')} ${hands[record.playerHand] || '✊'} / ${t('rps_bot')} ${hands[record.botHand] || '✌️'}`;
+    }
     return record.options.map((option, index) => `${String.fromCharCode(65 + index)} ${option}`).join(' / ');
   }
 
@@ -1814,21 +1944,31 @@ import { t, setLang } from './js/i18n.js';
   }
 
   function drawExportChips(ctx, result, isDark, accent, pink, sub, width) {
-    const chipWidth = Math.min(92, Math.floor((width - 96) / result.options.length));
-    const startX = (width - chipWidth * result.options.length - 8 * (result.options.length - 1)) / 2;
-    result.options.forEach((option, index) => {
+    const chips = result.mode === 'rps'
+      ? [
+          { text: exportChipText(result, 0), label: t('rps_you'), win: result.outcome === 'win' },
+          { text: exportChipText(result, 1), label: t('rps_bot'), win: result.outcome === 'lose' }
+        ]
+      : result.options.map((option, index) => ({
+          text: exportChipText(result, index),
+          label: option,
+          win: index === result.winnerIndex
+        }));
+    const chipWidth = Math.min(92, Math.floor((width - 96) / chips.length));
+    const startX = (width - chipWidth * chips.length - 8 * (chips.length - 1)) / 2;
+    chips.forEach((chip, index) => {
       const x = startX + index * (chipWidth + 8);
       const y = 176;
-      const isWin = index === result.winnerIndex;
+      const isWin = chip.win;
       const isWheel = result.mode === 'wheel';
       const chipFill = isWheel ? wheelColor(index) : (isWin ? '#FFF0F6' : (isDark ? '#2B2840' : '#F5F4FA'));
       roundRect(ctx, x, y, chipWidth, 56, 12, chipFill);
       ctx.fillStyle = isWheel ? '#FFFFFF' : (isWin ? pink : accent);
       ctx.font = '900 22px Segoe UI, sans-serif';
-      ctx.fillText(exportChipText(result, index), x + chipWidth / 2, y + 25);
+      ctx.fillText(chip.text, x + chipWidth / 2, y + 25);
       ctx.fillStyle = isWheel ? 'rgba(255,255,255,.88)' : sub;
       ctx.font = '700 10px Segoe UI, sans-serif';
-      ctx.fillText(trimText(ctx, option, chipWidth - 10), x + chipWidth / 2, y + 43);
+      ctx.fillText(trimText(ctx, chip.label, chipWidth - 10), x + chipWidth / 2, y + 43);
     });
   }
 
@@ -1836,6 +1976,11 @@ import { t, setLang } from './js/i18n.js';
     if ((result.mode || 'dice') === 'dice') return String((result.rolls || [])[index] || '-');
     if (result.mode === 'coin') return coinSideLabel(index);
     if (result.mode === 'slot') return String(index + 1);
+    if (result.mode === 'rps') {
+      return index === 0
+        ? (RPS_HANDS[result.playerHand] || {}).emoji || '✊'
+        : (RPS_HANDS[result.botHand] || {}).emoji || '✌️';
+    }
     return String.fromCharCode(65 + index);
   }
 
@@ -1994,6 +2139,7 @@ import { t, setLang } from './js/i18n.js';
     if (value === 'coin') return '\uD83E\uDE99';
     if (value === 'wheel') return '\uD83C\uDFA1';
     if (value === 'slot') return '\uD83C\uDFB2';
+    if (value === 'rps') return '✊';
     return '\uD83C\uDFB2';
   }
 
