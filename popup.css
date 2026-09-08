@@ -1220,10 +1220,9 @@ button {
 .panel-body {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
+  /* overlay 滚动条不占位，避免打开面板时滚动条 gutter 从无到有导致内容"往左拉" */
+  overflow-y: overlay;
   padding: 8px;
-  /* 预留滚动条空间：内容超高时滚动条出现不再挤压内容宽度（抖动根源） */
-  scrollbar-gutter: stable;
 }
 
 /* 面板搜索框 */
