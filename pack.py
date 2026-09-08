@@ -3,7 +3,7 @@ import os
 import zipfile
 
 BASE = r"d:\迅雷下载\vibe coding\Chrome Extensions\LuckyPick"
-OUT = r"d:\迅雷下载\vibe coding\Chrome Extensions\LuckyPick-v1.0.5.zip"
+OUT = r"d:\迅雷下载\vibe coding\LuckyPick-v1.0.5.zip"
 
 EXCLUDE_DIRS = {'.git', '.codebuddy', 'store-assets', 'store-screenshots', 'scripts'}
 EXCLUDE_FILES = {'.gitignore', 'create-icons.html', 'pack.py'}
