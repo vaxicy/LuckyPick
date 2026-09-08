@@ -254,7 +254,7 @@ export const I18N = {
       mode_coin: 'Moneda',
       mode_wheel: 'Ruleta',
       mode_slot: 'Sorteo',
-      mode_rps: 'PPT',
+      mode_rps: 'Piedra, papel o tijera',
       coin_heads: 'Cara',
       coin_tails: 'Cruz',
       roll_btn_dice: '🎲 Lanza el dado',
