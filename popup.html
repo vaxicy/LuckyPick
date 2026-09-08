@@ -34,8 +34,19 @@
             <button class="delete-btn" type="button">&times;</button>
           </div>
         </div>
-        <button id="btn-add-option" class="add-btn" type="button" data-i18n="add_option">+ Add option</button>
+        <div class="options-actions">
+          <button id="btn-add-option" class="add-btn" type="button" data-i18n="add_option">+ Add option</button>
+          <button id="btn-bulk-add" class="bulk-btn" type="button" data-i18n="bulk_btn">&#128203; Bulk</button>
+        </div>
+        <div id="bulk-box" class="bulk-box hidden">
+          <textarea id="bulk-input" class="bulk-input" rows="3" data-i18n-placeholder="bulk_placeholder"></textarea>
+          <div class="bulk-actions">
+            <button id="bulk-cancel" class="text-btn" type="button" data-i18n="confirm_cancel">Cancel</button>
+            <button id="bulk-ok" class="text-btn primary" type="button" data-i18n="bulk_confirm">Import</button>
+          </div>
+        </div>
       </section>
+      <div id="mode-hint" class="mode-hint hidden"></div>
 
       <button id="btn-roll" class="roll-btn" type="button" data-i18n="roll_btn">&#127922; Roll dice</button>
     </section>
@@ -57,6 +68,7 @@
       <div id="result-timestamp" class="result-timestamp"></div>
       <div class="result-actions">
         <button id="btn-again" class="action-btn primary" type="button" data-i18n="again">Again</button>
+        <button id="btn-copy" class="action-btn" type="button" data-i18n="copy_btn">&#128203; Copy</button>
         <button id="btn-export" class="action-btn" type="button" data-i18n="export_btn">Export</button>
       </div>
     </section>

@@ -67,7 +67,16 @@
       delete_favorite: '删除此收藏？',
       donate_text: '如果觉得好用，请我喝杯咖啡吧！',
       donate_wechat_btn: '微信赞赏',
-      donate_paypal_btn: 'PayPal'
+      donate_paypal_btn: 'PayPal',
+      copy_btn: '📋 复制',
+      copy_tpl: '🎲 Lucky Pick 帮我决定了：{0}\n（从 {1} 中选出）',
+      copied: '已复制到剪贴板',
+      copy_failed: '复制失败，请手动选择',
+      bulk_btn: '📋 批量导入',
+      bulk_placeholder: '每行一个选项，或用逗号 / 顿号分隔',
+      bulk_confirm: '导入',
+      bulk_added: '已导入 {0} 个选项',
+      bulk_truncated: '已导入 {0} 个（上限 {1} 个）'
     },
     en: {
       app_name: 'LuckyPick',
@@ -133,16 +142,28 @@
       delete_favorite: 'Delete this favorite?',
       donate_text: 'If you find it helpful,\nconsider buying me a coffee!',
       donate_wechat_btn: 'WeChat',
-      donate_paypal_btn: 'PayPal'
+      donate_paypal_btn: 'PayPal',
+      copy_btn: '📋 Copy',
+      copy_tpl: '🎲 Lucky Pick decided: {0}\n(from {1})',
+      copied: 'Copied to clipboard',
+      copy_failed: 'Copy failed, please select manually',
+      bulk_btn: '📋 Bulk',
+      bulk_placeholder: 'One per line, or separated by commas',
+      bulk_confirm: 'Import',
+      bulk_added: '{0} options imported',
+      bulk_truncated: '{0} imported (max {1})'
     }
   };
 
-  const MAX_OPTIONS = 6;
+  const MAX_OPTIONS = 10;
   const MAX_HISTORY = 50;
   const RULE = 'high';
   const SPEED = { fast: 0.65, normal: 1, slow: 1.45 };
   const MODES = ['dice', 'coin', 'wheel', 'slot'];
-  const WHEEL_COLORS = ['#E88BA8', '#7C6FBE', '#6BAFE0', '#7BC89E', '#F1C56D', '#B58BE8'];
+  const WHEEL_COLORS = [
+    '#E88BA8', '#7C6FBE', '#6BAFE0', '#7BC89E', '#F1C56D',
+    '#B58BE8', '#E89A6B', '#6BC8C0', '#C97BA8', '#9BB86B'
+  ];
   const STORAGE = {
     settings: 'luckypick_settings',
     history: 'luckypick_history',
@@ -474,6 +495,23 @@
     on('#btn-roll', 'click', doPick);
     on('#btn-again', 'click', resetToInput);
     on('#btn-export', 'click', exportAsImage);
+    on('#btn-copy', 'click', copyResult);
+    on('#btn-bulk-add', 'click', toggleBulkBox);
+    on('#bulk-cancel', 'click', closeBulkBox);
+    on('#bulk-ok', 'click', () => {
+      const input = $('#bulk-input');
+      if (input) addBulkOptions(input.value, null);
+      closeBulkBox();
+    });
+    on('#options-list', 'paste', (event) => {
+      const input = event.target;
+      if (!input.classList || !input.classList.contains('option-input')) return;
+      const clipboard = event.clipboardData || window.clipboardData;
+      const text = clipboard ? clipboard.getData('text') : '';
+      if (!text || !/[\n\r,，;；、|\t]/.test(text)) return;
+      event.preventDefault();
+      addBulkOptions(text, input);
+    });
     on('#btn-history', 'click', openHistoryPanel);
     on('#btn-settings', 'click', openSettingsPanel);
     on('#btn-close-history', 'click', closePanels);
@@ -606,6 +644,15 @@
     setText('#btn-roll', t(`roll_btn_${mode}`));
     const addButton = $('#btn-add-option');
     if (addButton) addButton.classList.toggle('hidden', mode === 'coin');
+    const bulkButton = $('#btn-bulk-add');
+    if (bulkButton) bulkButton.classList.toggle('hidden', mode === 'coin');
+    if (mode === 'coin') closeBulkBox();
+    const hint = $('#mode-hint');
+    if (hint) {
+      const show = mode === 'coin' && optionCount > 2;
+      hint.textContent = show ? t('coin_hint') : '';
+      hint.classList.toggle('hidden', !show);
+    }
     reindexRows();
     updateRollButtonState();
   }
@@ -695,6 +742,88 @@
     bindRow(row);
     reindexRows();
     updateRollButtonState();
+  }
+
+  function parseBulk(text) {
+    return String(text || '')
+      .split(/[\n\r,，;；、|\t]+/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  function addBulkOptions(text, startInput) {
+    const items = parseBulk(text);
+    if (!items.length) return;
+    const cap = mode === 'coin' ? 2 : MAX_OPTIONS;
+    const startIndex = startInput
+      ? Math.max(0, $$('.option-input').indexOf(startInput))
+      : 0;
+    let added = 0;
+    items.forEach((item, offset) => {
+      if (added >= cap) return;
+      const targetIndex = startIndex + offset;
+      if (targetIndex >= cap) return;
+      const current = $$('.option-input');
+      if (targetIndex < current.length) current[targetIndex].value = item;
+      else addRow(item);
+      added += 1;
+    });
+    reindexRows();
+    updateRollButtonState();
+    saveStateDebounced();
+    const skipped = items.length - added;
+    showToast(skipped > 0
+      ? t('bulk_truncated').replace('{0}', added).replace('{1}', cap)
+      : t('bulk_added').replace('{0}', added));
+  }
+
+  function toggleBulkBox() {
+    const box = $('#bulk-box');
+    if (!box) return;
+    if (box.classList.contains('hidden')) {
+      box.classList.remove('hidden');
+      const input = $('#bulk-input');
+      if (input) input.focus();
+    } else {
+      closeBulkBox();
+    }
+  }
+
+  function closeBulkBox() {
+    const box = $('#bulk-box');
+    if (!box) return;
+    box.classList.add('hidden');
+    const input = $('#bulk-input');
+    if (input) input.value = '';
+  }
+
+  function copyResult() {
+    if (!lastResult) return;
+    const winner = lastResult.isTie ? t('tie_title') : lastResult.winner;
+    const options = (lastResult.options || []).join(lang === 'zh' ? '、' : ', ');
+    const text = t('copy_tpl').replace('{0}', winner || '').replace('{1}', options);
+    const done = () => showToast(t('copied'));
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+    } else {
+      fallbackCopy(text, done);
+    }
+  }
+
+  function fallbackCopy(text, done) {
+    const area = document.createElement('textarea');
+    area.value = text;
+    area.setAttribute('readonly', '');
+    area.style.position = 'fixed';
+    area.style.top = '-1000px';
+    area.style.opacity = '0';
+    document.body.appendChild(area);
+    area.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch (error) { ok = false; }
+    area.remove();
+    if (ok) done();
+    else showToast(t('copy_failed'));
   }
 
   function reindexRows() {

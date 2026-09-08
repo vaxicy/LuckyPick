@@ -269,6 +269,101 @@ button {
   background: var(--accent-soft);
 }
 
+/* 批量导入 */
+.options-actions {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.options-actions .add-btn {
+  flex: 1 1 auto;
+  width: auto;
+  margin-top: 7px;
+}
+
+.bulk-btn {
+  flex: 0 0 auto;
+  height: 34px;
+  margin-top: 7px;
+  padding: 0 10px;
+  border: 1.5px dashed var(--border);
+  border-radius: var(--r);
+  color: var(--sub);
+  background: transparent;
+  cursor: pointer;
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.bulk-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.bulk-btn:active {
+  transform: scale(0.97);
+  background: var(--accent-soft);
+}
+
+.bulk-box {
+  margin-top: 7px;
+}
+
+.bulk-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 9px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r);
+  background: var(--card);
+  color: var(--text);
+  font-size: 12px;
+  font-family: inherit;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.bulk-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.bulk-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.bulk-actions .text-btn {
+  min-height: 28px;
+  padding: 0 12px;
+  font-size: 11.5px;
+  font-weight: 800;
+}
+
+.bulk-actions .text-btn.primary {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--accent), #d48cc8);
+}
+
+/* 模式提示条 */
+.mode-hint {
+  margin: -2px 0 8px;
+  padding: 6px 9px;
+  border-radius: var(--r);
+  background: var(--accent-bg);
+  color: var(--sub);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+}
+
 .segmented {
   display: flex;
   gap: 2px;
@@ -847,6 +942,11 @@ button {
 .result-actions .action-btn {
   font-size: 12px;
   min-height: 32px;
+}
+
+/* 第三个按钮（导出图片）独占一行，避免 2+1 孤儿布局 */
+.result-actions .action-btn:nth-child(3) {
+  grid-column: span 2;
 }
 
 .action-btn {
