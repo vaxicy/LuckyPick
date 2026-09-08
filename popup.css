@@ -45,10 +45,7 @@
 
 body {
   width: 320px;
-  /* 固定窗口高度：面板开关/界面切换不再触发 Chrome popup 窗口 resize（打开面板"拉长+抖动"的根因） */
-  height: 470px;
-  display: flex;
-  flex-direction: column;
+  min-height: 0;
   margin: 0;
   overflow-x: hidden;
   color: var(--text);
@@ -154,10 +151,6 @@ button {
 }
 
 .main {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
   padding: 3px 14px 10px;
 }
 
@@ -612,8 +605,6 @@ button {
 .roll-btn {
   width: 100%;
   height: 40px;
-  /* 吸底：固定高度窗口下主界面更均衡 */
-  margin-top: auto;
   border: 0;
   border-radius: 15px;
   color: #fff;
@@ -667,10 +658,6 @@ button {
 }
 
 .battle-section {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
   text-align: center;
   padding: 0 0 2px;
   animation: fadeIn .25s ease-out both;
@@ -683,10 +670,6 @@ button {
 }
 
 .input-section {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
   animation: fadeIn .2s ease-out both;
 }
 
@@ -965,7 +948,6 @@ button {
 
 .result-section {
   position: relative;
-  flex: 1;
   text-align: center;
   padding: 0;
   animation: rise .24s ease-out both;
@@ -1137,9 +1119,7 @@ button {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 7px;
-  /* 吸底：与主界面抽签按钮一致的布局风格 */
-  margin-top: auto;
-  padding-top: 7px;
+  margin-top: 7px;
 }
 
 /* 结果页时间戳 */
@@ -1207,7 +1187,9 @@ button {
   position: fixed;
   top: 10px;
   left: 12px;
-  right: 12px;
+  /* 固定宽度：避免 Chrome popup 窗口 auto-size 调整宽度时面板被横向"拉长" */
+  right: auto;
+  width: 296px;
   z-index: 21;
   max-height: calc(100vh - 20px);
   display: flex;
