@@ -611,7 +611,7 @@ import { t, setLang } from './js/i18n.js';
       <span class="badge">${letter}</span>
       <input class="option-input" placeholder="${escapeAttr(t('opt_placeholder').replace('{0}', letter))}" value="${escapeAttr(value || '')}">
       <button class="delete-btn" type="button">&times;</button>
-      <button class="weight-btn tip-left" type="button" data-i18n-tip="weight_tip" data-tip="${escapeAttr(t('weight_tip'))}">&#11088;</button>
+      <button class="weight-btn tip-left" type="button" data-i18n-tip="weight_tip" data-tip="${escapeAttr(t('weight_tip'))}">&#10084;&#65039;</button>
     `;
     const list = $('#options-list');
     if (!list) return;

@@ -279,7 +279,7 @@ button {
 
 .weight-btn.on {
   opacity: 1;
-  color: #f0b429;
+  color: #e8637e;
   background: var(--accent-bg);
   transform: scale(1.14);
 }
@@ -1224,7 +1224,7 @@ button {
 
 /* 面板搜索框 */
 .panel-search {
-  padding: 8px 8px 0;
+  padding: 8px;
 }
 
 .panel-search-input {
