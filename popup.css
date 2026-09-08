@@ -45,6 +45,7 @@
 
 html {
   width: 320px;
+  overflow: hidden;
 }
 
 body {
@@ -348,15 +349,15 @@ button {
 }
 
 /* 靠右的控件 tooltip 向左弹出，避免溢出容器被裁剪 */
-.tip-left::after {
-  top: 50%;
-  right: calc(100% + 8px);
-  transform: translateY(-50%) translateX(4px);
+/* 显示在按钮下方（右对齐）：左侧弹出与居中弹出都会向窗口边界溢出，诱发 popup 宽度 auto-size 抖动 */
+.tip-below::after {
+  right: 0;
+  transform: translate(0, -4px);
 }
 
-.tip-left:hover::after,
-.tip-left:focus-visible::after {
-  transform: translateY(-50%) translateX(0);
+.tip-below:hover::after,
+.tip-below:focus-visible::after {
+  transform: translate(0, 0);
 }
 
 .favorite-item-rename {
