@@ -70,6 +70,10 @@ button {
 }
 
 .topbar {
+  /* 提升层级：按钮 hover 的 transform 会创建 stacking context，
+     否则 tooltip 会被下方选项行盖住 */
+  position: relative;
+  z-index: 5;
   display: flex;
   align-items: center;
   justify-content: space-between;
