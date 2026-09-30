@@ -165,7 +165,8 @@ button {
 
 .options-list {
   max-height: 148px;
-  overflow-y: auto;
+  /* 纵向滚动；横向直接裁剪，防止行内隐藏 tooltip 伪元素越界产生横向滚动条 */
+  overflow: hidden auto;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -321,12 +322,13 @@ button {
   position: relative;
 }
 
+/* 统一定位：默认在按钮下方右对齐（永不溢出窗口右缘），容器内被裁剪的控件用 .tip-side 向左弹出 */
 [data-tip]::after {
   content: attr(data-tip);
   position: absolute;
   top: calc(100% + 7px);
-  right: 50%;
-  transform: translate(50%, -4px);
+  right: 0;
+  transform: translate(0, -4px);
   z-index: 80;
   padding: 6px 10px;
   border-radius: 9px;
@@ -345,18 +347,6 @@ button {
 [data-tip]:hover::after,
 [data-tip]:focus-visible::after {
   opacity: 1;
-  transform: translate(50%, 0);
-}
-
-/* 靠右的控件 tooltip 向左弹出，避免溢出容器被裁剪 */
-/* 显示在按钮下方（右对齐）：左侧弹出与居中弹出都会向窗口边界溢出，诱发 popup 宽度 auto-size 抖动 */
-.tip-below::after {
-  right: 0;
-  transform: translate(0, -4px);
-}
-
-.tip-below:hover::after,
-.tip-below:focus-visible::after {
   transform: translate(0, 0);
 }
 
@@ -977,10 +967,33 @@ button {
   position: relative;
   text-align: center;
   padding: 0;
-  animation: rise .24s ease-out both;
+  animation: panelIn .2s ease-out both;
   display: flex;
   flex-direction: column;
   align-items: center;
+  /* 结果页强调色（按玩法模式覆盖），深浅主题通用 */
+  --rc-1: #6f61b8;
+  --rc-2: #d4709a;
+}
+
+.result-section[data-mode="coin"] {
+  --rc-1: #a8791a;
+  --rc-2: #c9921f;
+}
+
+.result-section[data-mode="wheel"] {
+  --rc-1: #2e8b84;
+  --rc-2: #2f9e94;
+}
+
+.result-section[data-mode="slot"] {
+  --rc-1: #b05a3c;
+  --rc-2: #cf7250;
+}
+
+.result-section[data-mode="rps"] {
+  --rc-1: #3a63a8;
+  --rc-2: #5b85c9;
 }
 
 /* 结果页可爱角色 */
@@ -1005,10 +1018,10 @@ button {
   max-width: 100%;
   margin: 0 auto 6px;
   padding: 8px 14px;
-  border: 1.5px solid rgba(232, 139, 168, .28);
+  border: 1.5px solid color-mix(in srgb, var(--rc-2) 30%, transparent);
   border-radius: var(--r);
-  background: var(--win-bg);
-  box-shadow: 0 6px 18px rgba(232, 139, 168, .10);
+  background: color-mix(in srgb, var(--rc-2) 12%, var(--card));
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--rc-2) 14%, transparent);
   animation: tinyPop .24s ease-out both;
   position: relative;
 }
@@ -1036,7 +1049,7 @@ button {
 
 .result-kicker {
   margin-bottom: 2px;
-  color: var(--accent);
+  color: var(--rc-1);
   font-size: 10px;
   font-weight: 900;
   letter-spacing: .8px;
@@ -1044,7 +1057,7 @@ button {
 }
 
 .result-winner {
-  color: var(--accent-2);
+  color: var(--rc-2);
   font-size: 18px;
   font-weight: 950;
   line-height: 1.18;
@@ -1079,20 +1092,20 @@ button {
 }
 
 .score-chip.win {
-  background: var(--win-bg);
-  box-shadow: inset 0 0 0 1px rgba(232, 139, 168, .25);
+  background: color-mix(in srgb, var(--rc-2) 14%, var(--card));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rc-2) 30%, transparent);
   animation: tinyPop .26s ease-out .08s both;
 }
 
 .score-number {
-  color: var(--accent);
+  color: var(--rc-1);
   font-size: 16px;
   font-weight: 950;
   line-height: 1;
 }
 
 .score-chip.win .score-number {
-  color: var(--accent-2);
+  color: var(--rc-2);
 }
 
 .result-wheel-visual .score-chip {
@@ -1232,19 +1245,14 @@ button {
 }
 
 .result-slot-visual .score-chip.win .slot-num {
-  background: var(--accent-2);
+  background: var(--rc-2);
 }
 
+/* 列数由 JS 按可见按钮数动态设置，保证所有按钮单行排布 */
 .result-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: 7px;
   margin-top: 7px;
-}
-
-/* 猜拳结果没有"换一个"按钮，3 个按钮一行排布 */
-.result-actions.rps-cols {
-  grid-template-columns: repeat(3, 1fr);
 }
 
 /* 结果页时间戳 */
@@ -1253,6 +1261,7 @@ button {
   color: var(--muted);
   font-size: 10.5px;
   text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
 .result-actions .action-btn {
@@ -1260,12 +1269,6 @@ button {
   min-height: 32px;
 }
 
-/* 按钮为奇数个时（如"换一个"隐藏后）最后一个独占一行，避免 2+1 孤儿布局 */
-.result-actions .action-btn:last-child:nth-child(odd) {
-  grid-column: span 2;
-}
-
-/* 结果区四个按钮按 2x2 网格排列 */
 
 .action-btn {
   min-height: 32px;
@@ -1324,7 +1327,7 @@ button {
   border-radius: 16px;
   background: var(--card);
   box-shadow: 0 14px 34px rgba(34, 29, 70, .18);
-  animation: popIn .18s ease-out both;
+  animation: panelIn .18s ease-out both;
 }
 
 .panel-head {
@@ -1386,6 +1389,19 @@ button {
 .panel-foot {
   padding: 8px;
   border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+/* 历史统计条 */
+.history-stats {
+  margin: 0 8px 6px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-size: 10.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
   text-align: center;
 }
 
@@ -2067,6 +2083,7 @@ button {
 
 ::-webkit-scrollbar {
   width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -2074,17 +2091,15 @@ button {
   background: var(--border);
 }
 
-@keyframes rise {
-  from { opacity: 0; transform: translateY(10px) scale(.98); }
-}
 
 @keyframes pop {
   from { opacity: 0; transform: scale(.5) rotate(-20deg); }
 }
 
 /* 面板入场只用纯淡入：translateY+scale 组合会被感知为"拉长后抖动" */
-@keyframes popIn {
-  from { opacity: 0; }
+/* 统一的浮层/结果页入场：纯淡入 + 4px 上移，避免 transform 缩放引发宽度抖动 */
+@keyframes panelIn {
+  from { opacity: 0; transform: translateY(4px); }
 }
 
 @keyframes tinyPop {

@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "__MSG_extension_name__",
   "default_locale": "zh_CN",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "__MSG_extension_description__",
   "permissions": ["storage"],
   "action": {
@@ -21,12 +21,5 @@
     "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
   },
-  "web_accessible_resources": [
-    {
-      "resources": ["assets/赞赏码.png", "donate.html"],
-      "matches": ["<all_urls>"]
-    }
-  ],
-  "homepage_url": "https://github.com/vaxicy/LuckyPick",
-  "offline_enabled": false
+  "homepage_url": "https://github.com/vaxicy/LuckyPick"
 }

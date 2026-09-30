@@ -629,7 +629,7 @@ import { t, setLang } from './js/i18n.js';
       <span class="badge">${letter}</span>
       <input class="option-input" placeholder="${escapeAttr(t('opt_placeholder').replace('{0}', letter))}" value="${escapeAttr(value || '')}">
       <button class="delete-btn" type="button">&times;</button>
-      <button class="weight-btn tip-below" type="button" data-i18n-tip="weight_tip" data-tip="${escapeAttr(t('weight_tip'))}">&#10084;&#65039;</button>
+      <button class="weight-btn tip-side" type="button" data-i18n-tip="weight_tip" data-tip="${escapeAttr(t('weight_tip'))}">&#10084;&#65039;</button>
     `;
     const list = $('#options-list');
     if (!list) return;
@@ -1262,7 +1262,12 @@ import { t, setLang } from './js/i18n.js';
 
   function renderResult(result) {
     $('#battle-section')?.classList.add('hidden');
-    $('#result-section')?.classList.remove('hidden');
+    const resultSection = $('#result-section');
+    if (resultSection) {
+      resultSection.classList.remove('hidden');
+      // 按玩法模式切换结果页强调色
+      resultSection.dataset.mode = result.mode || 'dice';
+    }
     document.body.classList.add('result-mode');
 
     // 根据结果类型设置可爱角色表情
@@ -1312,7 +1317,12 @@ import { t, setLang } from './js/i18n.js';
     }
 
     const actionsBar = document.querySelector('.result-actions');
-    if (actionsBar) actionsBar.classList.toggle('rps-cols', result.mode === 'rps');
+    if (actionsBar) {
+      // 按可见按钮数动态设置列数，避免末位按钮独占一行
+      const visibleBtns = Array.from(actionsBar.querySelectorAll('.action-btn'))
+        .filter((b) => !b.classList.contains('hidden'));
+      actionsBar.style.gridTemplateColumns = `repeat(${Math.max(visibleBtns.length, 1)}, 1fr)`;
+    }
 
     spawnConfetti();
 
@@ -1423,6 +1433,7 @@ import { t, setLang } from './js/i18n.js';
   function renderHistory() {
     const list = $('#history-list');
     if (!list) return;
+    renderHistoryStats();
     const searchWrap = $('#history-search-wrap');
     if (searchWrap) searchWrap.classList.toggle('hidden', incognito || !history.length);
     if (incognito) {
@@ -1486,6 +1497,36 @@ import { t, setLang } from './js/i18n.js';
       }
       list.appendChild(item);
     });
+  }
+
+  // 历史统计：总次数 + 最高频结果（平局不计入最高频）
+  function renderHistoryStats() {
+    const node = $('#history-stats');
+    if (!node) return;
+    if (incognito || history.length < 2) {
+      node.classList.add('hidden');
+      node.textContent = '';
+      return;
+    }
+    const counts = new Map();
+    history.forEach((record) => {
+      if (record.isTie || !record.winner) return;
+      counts.set(record.winner, (counts.get(record.winner) || 0) + 1);
+    });
+    let topName = '';
+    let topCount = 0;
+    counts.forEach((count, name) => {
+      if (count > topCount) {
+        topCount = count;
+        topName = name;
+      }
+    });
+    const parts = [t('stats_total').replace('{0}', history.length)];
+    if (topName && topCount > 1) {
+      parts.push(t('stats_top').replace('{0}', topName).replace('{1}', topCount));
+    }
+    node.textContent = parts.join(' · ');
+    node.classList.remove('hidden');
   }
 
   function historyDetail(record) {
@@ -1822,10 +1863,20 @@ import { t, setLang } from './js/i18n.js';
     $('#set-incognito')?.classList.toggle('on', incognito);
   }
 
+  // 首次使用按浏览器界面语言自动选择，非中文/西班牙语回退英文
+  function detectLang() {
+    const raw = (chrome.i18n && chrome.i18n.getUILanguage ? chrome.i18n.getUILanguage() : navigator.language) || 'en';
+    const code = raw.toLowerCase();
+    if (code.startsWith('zh')) return 'zh';
+    if (code.startsWith('es')) return 'es';
+    return 'en';
+  }
+
   function loadSettings(done) {
     chrome.storage.local.get([STORAGE.settings, STORAGE.history], (result) => {
       const settings = result[STORAGE.settings] || {};
-      lang = settings.lang || 'zh';
+      // 首次使用（无历史设置）按浏览器界面语言选择，默认回退英文
+      lang = settings.lang || detectLang();
       setLang(lang);
       theme = settings.theme || 'light';
       mode = MODES.includes(settings.mode) ? settings.mode : 'dice';
@@ -1954,15 +2005,36 @@ import { t, setLang } from './js/i18n.js';
     ctx.font = '600 12px Segoe UI, sans-serif';
     ctx.fillText(exportFooter(lastResult), width / 2, 260);
 
-    canvas.toBlob((blob) => {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `luckypick-${lastResult.mode || 'dice'}-${fileDate()}.png`;
-      a.click();
-      URL.revokeObjectURL(url);
+    canvas.toBlob(async (blob) => {
+      if (!blob) return;
+      // 优先复制到剪贴板（便于直接粘贴分享），不支持或失败时回退为下载
+      if (await copyImageToClipboard(blob)) {
+        showToast(t('image_copied'));
+        return;
+      }
+      downloadImageBlob(blob);
       showToast(t('exported'));
     }, 'image/png');
+  }
+
+  async function copyImageToClipboard(blob) {
+    try {
+      if (!navigator.clipboard || typeof window.ClipboardItem !== 'function') return false;
+      if (typeof ClipboardItem.supports === 'function' && !ClipboardItem.supports('image/png')) return false;
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function downloadImageBlob(blob) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `luckypick-${lastResult.mode || 'dice'}-${fileDate()}.png`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   function drawExportChips(ctx, result, isDark, accent, pink, sub, width) {
