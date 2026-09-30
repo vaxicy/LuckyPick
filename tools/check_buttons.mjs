@@ -1,4 +1,6 @@
-// 校验结果页按钮文本在各语言（含 4 按钮场景）是否被省略号截断
+// 校验结果页按钮文本在各语言、各按钮数量布局下是否被省略号截断
+// 场景 A：骰子 + 4 选项（非平局时 4 个按钮，排 2×2）
+// 场景 B：硬币（固定 3 个按钮，单行 3 列）
 // 用法：node tools/check_buttons.mjs
 import http from 'node:http';
 import fs from 'node:fs';
@@ -38,9 +40,22 @@ const OPTIONS = {
   ru: ['Пицца', 'Суши', 'Салат', 'Шашлык']
 };
 
+const LANGS = ['zh', 'en', 'es', 'fr', 'ru'];
+
 let problems = 0;
 
-for (const lang of ['zh', 'en', 'es', 'fr', 'ru']) {
+async function readButtons(target) {
+  return target.evaluate(() => Array.from(document.querySelectorAll('.result-actions .action-btn'))
+    .filter((b) => !b.classList.contains('hidden'))
+    .map((b) => ({ text: b.textContent.trim(), clipped: b.scrollWidth > b.clientWidth + 1 })));
+}
+
+async function waitResult(target) {
+  await target.waitForFunction(() => !document.querySelector('#result-section').classList.contains('hidden'), null, { timeout: 15000 });
+  await target.waitForTimeout(250);
+}
+
+for (const lang of LANGS) {
   const context = await browser.newContext({ viewport: { width: 320, height: 620 } });
   await context.addInitScript((data) => {
     window.chrome = {
@@ -72,22 +87,37 @@ for (const lang of ['zh', 'en', 'es', 'fr', 'ru']) {
   }
   await page.waitForTimeout(200);
 
-  let rows = [];
+  // 场景 A：骰子 + 4 选项，重摇直到出现 4 个按钮（非平局）
+  let sceneA = [];
   for (let attempt = 0; attempt < 8; attempt += 1) {
     await page.click('#btn-roll');
-    await page.waitForFunction(() => !document.querySelector('#result-section').classList.contains('hidden'), null, { timeout: 15000 });
-    await page.waitForTimeout(250);
-    rows = await page.evaluate(() => Array.from(document.querySelectorAll('.result-actions .action-btn'))
-      .filter((b) => !b.classList.contains('hidden'))
-      .map((b) => ({ text: b.textContent.trim(), clipped: b.scrollWidth > b.clientWidth + 1, client: b.clientWidth, scroll: b.scrollWidth })));
-    if (rows.length >= 4) break;
+    await waitResult(page);
+    sceneA = await readButtons(page);
+    if (sceneA.length >= 4) break;
     await page.click('#btn-again');
     await page.waitForTimeout(300);
   }
 
-  const clipped = rows.filter((r) => r.clipped);
-  problems += clipped.length;
-  console.log(`${lang}: ${rows.length} buttons ->`, rows.map((r) => `${r.text}${r.clipped ? ' [CLIPPED]' : ''}`).join(' | ') || '(none)');
+  // 场景 B：硬币 + 仅 2 个选项 → 固定 3 个按钮单行（先回到输入页，否则结果页遮挡主按钮）
+  await page.click('#btn-again');
+  await page.waitForTimeout(300);
+  for (let i = options.length; i > 2; i -= 1) {
+    await page.click(`.option-row >> nth=${i - 1} >> .delete-btn`);
+    await page.waitForTimeout(150);
+  }
+  await page.click('#btn-settings');
+  await page.waitForTimeout(300);
+  await page.click('#set-mode .seg-btn[data-value="coin"]');
+  await page.waitForTimeout(300);
+  await page.click('#btn-roll');
+  await waitResult(page);
+  const sceneB = await readButtons(page);
+
+  for (const [name, rows] of [['A(4 buttons, 2x2)', sceneA], ['B(3 buttons, 1 row)', sceneB]]) {
+    const clipped = rows.filter((r) => r.clipped);
+    problems += clipped.length;
+    console.log(`${lang} ${name}: ${rows.map((r) => `${r.text}${r.clipped ? ' [CLIPPED]' : ''}`).join(' | ') || '(none)'}`);
+  }
   await context.close();
 }
 

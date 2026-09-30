@@ -9,7 +9,8 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "store-assets" / "promo"
-SRC = ROOT / "store-assets" / "source-captures"
+# 使用中文界面源图（promo 为双语素材，界面取中文）
+SRC = ROOT / "store-assets" / "source-captures" / "zh"
 OUT.mkdir(parents=True, exist_ok=True)
 
 TEXT = "#4a3860"
@@ -132,8 +133,8 @@ def make_marquee_bilingual():
     text(d, "Ready to Use", (132, btn_center_y + 4), 13, "#ffffff")
 
     rr(d, (296, btn_y, 506, btn_y + btn_h), 22, "#ffffff", ACCENT2, 2)
-    text(d, "中 / 英 / 西 三语", (322, btn_center_y - 15), 16, ACCENT, True)
-    text(d, "3 Languages · Fun", (330, btn_center_y + 5), 13, ACCENT)
+    text(d, "五语界面", (360, btn_center_y - 15), 16, ACCENT, True)
+    text(d, "5 Languages · Fun", (330, btn_center_y + 5), 13, ACCENT)
 
     # Popup screenshots (stacked, same as original layout)
     rps = fit(load_capture("capture-rps-battle.png"), 430, 306)

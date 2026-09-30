@@ -43,8 +43,14 @@ const browser = await chromium.launch({ headless: true, executablePath: EXECUTAB
 const context = await browser.newContext({ viewport: { width: 320, height: 620 }, deviceScaleFactor: 2 });
 
 const now = Date.now();
-// 西里尔/拉丁语系的示例选项
-const OPTIONS = { ru: ['Пицца', 'Суши'] };
+// 各语言的示例选项（中文用中文，俄语用西里尔，其余用拉丁）
+const OPTIONS = {
+  zh: ['火锅', '寿司'],
+  en: ['Pizza', 'Sushi'],
+  es: ['Pizza', 'Sushi'],
+  fr: ['Pizza', 'Sushi'],
+  ru: ['Пицца', 'Суши']
+};
 const [optionA, optionB] = OPTIONS[lang] || ['Pizza', 'Sushi'];
 const store = {
   luckypick_settings: {

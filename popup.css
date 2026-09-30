@@ -1267,7 +1267,9 @@ button {
 .result-actions .action-btn {
   font-size: 12px;
   min-height: 32px;
-  /* 长语言（西语/法语）文案不换行、不撑破按钮，超出省略 */
+  /* 长语言（俄语/西语/法语）文案不换行；flex 单行时按文案宽度自适应，极端情况省略 */
+  flex: 1 1 auto;
+  min-width: 0;
   padding: 0 6px;
   white-space: nowrap;
   overflow: hidden;

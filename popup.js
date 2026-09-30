@@ -1323,11 +1323,16 @@ import { t, setLang } from './js/i18n.js';
 
     const actionsBar = document.querySelector('.result-actions');
     if (actionsBar) {
-      // 列数按可见按钮数自适应：≤3 个单行；4 个排 2×2（避免单行过窄截断文案，也避免末位独占一行）
+      // 布局按可见按钮数自适应：4 个排 2×2（避免单行过窄）；≤3 个用 flex 单行，按钮按文案宽度自适应
       const visibleBtns = Array.from(actionsBar.querySelectorAll('.action-btn'))
         .filter((b) => !b.classList.contains('hidden'));
-      const columns = visibleBtns.length >= 4 ? 2 : Math.max(visibleBtns.length, 1);
-      actionsBar.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+      if (visibleBtns.length >= 4) {
+        actionsBar.style.display = 'grid';
+        actionsBar.style.gridTemplateColumns = 'repeat(2, 1fr)';
+      } else {
+        actionsBar.style.display = 'flex';
+        actionsBar.style.gridTemplateColumns = '';
+      }
     }
 
     spawnConfetti();
