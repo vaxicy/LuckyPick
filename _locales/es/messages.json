@@ -4,7 +4,7 @@
     "description": "Extension name"
   },
   "extension_description": {
-    "message": "¿No te decides? Deja que Lucky Pick te ayude a elegir al azar. Incluye dado, moneda, ruleta, sorteo y piedra-papel-tijera.",
+    "message": "¿No te decides? Escribe tus opciones y deja que Lucky Pick elija al instante.",
     "description": "Extension description"
   }
 }

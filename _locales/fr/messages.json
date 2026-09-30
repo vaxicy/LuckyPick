@@ -4,7 +4,7 @@
     "description": "Extension name"
   },
   "extension_description": {
-    "message": "Vous n’arrivez pas à choisir ? Laissez Lucky Pick décider au hasard. Dé, pièce, roulette, tirage et pierre-feuille-ciseaux.",
+    "message": "Vous hésitez ? Saisissez vos options et laissez Lucky Pick choisir en un clic.",
     "description": "Extension description"
   }
 }

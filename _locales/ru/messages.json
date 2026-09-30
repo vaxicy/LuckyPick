@@ -4,7 +4,7 @@
     "description": "Extension name"
   },
   "extension_description": {
-    "message": "Не можете выбрать? Пусть Lucky Pick решит за вас. Кубик, монета, рулетка, жребий и камень-ножницы-бумага.",
+    "message": "Не можете выбрать? Введите варианты — Lucky Pick решит за вас в один клик.",
     "description": "Extension description"
   }
 }

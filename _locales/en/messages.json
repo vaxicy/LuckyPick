@@ -1,10 +1,10 @@
 {
   "extension_name": {
-    "message": "Lucky Pick - 选择困难症小助手",
+    "message": "Lucky Pick - Your Decision Helper",
     "description": "Extension name"
   },
   "extension_description": {
-    "message": "Struggling to choose? Let Lucky Pick help you decide randomly! Supports dice rolling, coin flipping, lucky wheel, and shuffle mode.",
+    "message": "Cannot decide? Enter your options and let Lucky Pick choose in one click.",
     "description": "Extension description"
   }
 }

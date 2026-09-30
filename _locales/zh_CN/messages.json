@@ -4,7 +4,7 @@
     "description": "Extension name"
   },
   "extension_description": {
-    "message": "还在纠结吃啥、去哪、选哪个？让 Lucky Pick 帮你随机选择，告别选择困难症！支持掷骰子、抛硬币、幸运转盘多种模式。",
+    "message": "选择困难？输入选项，一键随机决定，简单、快速、有趣。",
     "description": "Extension description"
   }
 }
