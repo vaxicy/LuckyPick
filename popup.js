@@ -536,9 +536,9 @@ import { t, setLang } from './js/i18n.js';
   }
 
   // 语言代码 → html lang 属性
-  const HTML_LANG = { zh: 'zh-CN', en: 'en', es: 'es', fr: 'fr' };
+  const HTML_LANG = { zh: 'zh-CN', en: 'en', es: 'es', fr: 'fr', ru: 'ru' };
   // 首次使用按浏览器语言匹配的顺序（前缀匹配）
-  const SUPPORTED_LANGS = ['zh', 'es', 'fr'];
+  const SUPPORTED_LANGS = ['zh', 'es', 'fr', 'ru'];
 
   function applyI18n() {
     document.documentElement.lang = HTML_LANG[lang] || 'en';

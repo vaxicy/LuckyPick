@@ -34,12 +34,13 @@ const OPTIONS = {
   zh: ['火锅', '寿司', '沙拉', '烧烤'],
   en: ['Pizza', 'Sushi', 'Salad', 'BBQ'],
   es: ['Pizza', 'Sushi', 'Ensalada', 'Parrilla'],
-  fr: ['Pizza', 'Sushi', 'Salade', 'Barbecue']
+  fr: ['Pizza', 'Sushi', 'Salade', 'Barbecue'],
+  ru: ['Пицца', 'Суши', 'Салат', 'Шашлык']
 };
 
 let problems = 0;
 
-for (const lang of ['zh', 'en', 'es', 'fr']) {
+for (const lang of ['zh', 'en', 'es', 'fr', 'ru']) {
   const context = await browser.newContext({ viewport: { width: 320, height: 620 } });
   await context.addInitScript((data) => {
     window.chrome = {

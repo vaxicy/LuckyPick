@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Store screenshot texts for zh / en / es / fr."""
+"""Store screenshot texts for zh / en / es / fr / ru."""
 
 CAPTURES = [
     {
@@ -29,6 +29,12 @@ CAPTURES = [
             "feature": "Saisie simple",
             "detail": "Interface réelle, champs arrondis et bouton dégradé.",
         },
+        "ru": {
+            "title": "Ваш помощник в выборе",
+            "desc": "Окно открывается сразу готовым к работе. Введите варианты и решайте.",
+            "feature": "Простой ввод",
+            "detail": "Настоящий интерфейс, скруглённые поля и кнопка с градиентом.",
+        },
     },
     {
         "stored": "capture-dice.png",
@@ -56,6 +62,12 @@ CAPTURES = [
             "desc": "Une animation amusante qui donne du rituel à chaque décision.",
             "feature": "Décision au dé",
             "detail": "Plusieurs options lancées ensemble, résultat limpide.",
+        },
+        "ru": {
+            "title": "3D-анимация броска кубика",
+            "desc": "Забавная анимация придаёт ритуал каждому решению.",
+            "feature": "Решение кубиком",
+            "detail": "Несколько вариантов бросаются сразу, результат нагляден.",
         },
     },
     {
@@ -85,6 +97,12 @@ CAPTURES = [
             "feature": "Mode pièce",
             "detail": "Animation de pièce réaliste, tirée de l'extension.",
         },
+        "ru": {
+            "title": "Орёл или решка — один бросок",
+            "desc": "Идеально для выбора из двух: монета решит за вас.",
+            "feature": "Режим монеты",
+            "detail": "Реалистичная анимация монеты из расширения.",
+        },
     },
     {
         "stored": "capture-wheel.png",
@@ -113,6 +131,12 @@ CAPTURES = [
             "feature": "Mode roulette",
             "detail": "La roulette tourne vraiment, dans l'extension réelle.",
         },
+        "ru": {
+            "title": "Рулетка, понятный результат",
+            "desc": "Веселее с несколькими вариантами, цвета совпадают с результатом.",
+            "feature": "Режим рулетки",
+            "detail": "Рулетка крутится по-настоящему, прямо в расширении.",
+        },
     },
     {
         "stored": "capture-rps-battle.png",
@@ -140,6 +164,12 @@ CAPTURES = [
             "desc": "Le bot joue A, vous jouez B : le camp gagnant est choisi.",
             "feature": "Mode PFC",
             "detail": "Animation de duel et revanche auto en cas d'égalité.",
+        },
+        "ru": {
+            "title": "Дуэль: камень-ножницы-бумага",
+            "desc": "Бот играет за A, вы за B: выбирает победившая сторона.",
+            "feature": "Режим КНБ",
+            "detail": "Анимация дуэли и авто-переброс при ничьей.",
         },
     },
 ]

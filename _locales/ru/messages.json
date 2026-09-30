@@ -1,0 +1,10 @@
+{
+  "extension_name": {
+    "message": "Lucky Pick - Помощник в выборе",
+    "description": "Extension name"
+  },
+  "extension_description": {
+    "message": "Не можете выбрать? Пусть Lucky Pick решит за вас. Кубик, монета, рулетка, жребий и камень-ножницы-бумага.",
+    "description": "Extension description"
+  }
+}

@@ -43,14 +43,17 @@ const browser = await chromium.launch({ headless: true, executablePath: EXECUTAB
 const context = await browser.newContext({ viewport: { width: 320, height: 620 }, deviceScaleFactor: 2 });
 
 const now = Date.now();
+// 西里尔/拉丁语系的示例选项
+const OPTIONS = { ru: ['Пицца', 'Суши'] };
+const [optionA, optionB] = OPTIONS[lang] || ['Pizza', 'Sushi'];
 const store = {
   luckypick_settings: {
     lang, theme: 'light', mode: 'dice', incognito: false,
     soundEnabled: false, animSpeed: 'fast', onboarded: true
   },
   luckypick_history: [
-    { mode: 'dice', winner: 'Pizza', options: ['Pizza', 'Sushi'], rolls: [5, 2], winnerIndex: 0, isTie: false, createdAt: now - 120000 },
-    { mode: 'coin', winner: 'Sushi', options: ['Pizza', 'Sushi'], winnerIndex: 1, isTie: false, createdAt: now - 600000 }
+    { mode: 'dice', winner: optionA, options: [optionA, optionB], rolls: [5, 2], winnerIndex: 0, isTie: false, createdAt: now - 120000 },
+    { mode: 'coin', winner: optionB, options: [optionA, optionB], winnerIndex: 1, isTie: false, createdAt: now - 600000 }
   ]
 };
 
@@ -108,8 +111,8 @@ async function pickMode(value) {
   await page.waitForTimeout(350);
 }
 
-await page.fill('.option-input >> nth=0', 'Pizza');
-await page.fill('.option-input >> nth=1', 'Sushi');
+await page.fill('.option-input >> nth=0', optionA);
+await page.fill('.option-input >> nth=1', optionB);
 await page.waitForTimeout(200);
 
 // 1) 主界面
