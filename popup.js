@@ -535,8 +535,13 @@ import { t, setLang } from './js/i18n.js';
     updateRollButtonState();
   }
 
+  // 语言代码 → html lang 属性
+  const HTML_LANG = { zh: 'zh-CN', en: 'en', es: 'es', fr: 'fr' };
+  // 首次使用按浏览器语言匹配的顺序（前缀匹配）
+  const SUPPORTED_LANGS = ['zh', 'es', 'fr'];
+
   function applyI18n() {
-    document.documentElement.lang = lang === 'en' ? 'en' : (lang === 'es' ? 'es' : 'zh-CN');
+    document.documentElement.lang = HTML_LANG[lang] || 'en';
     setText('#app-name', t('app_name'));
     $$('[data-i18n]').forEach((element) => {
       element.textContent = t(element.dataset.i18n);
@@ -1318,10 +1323,11 @@ import { t, setLang } from './js/i18n.js';
 
     const actionsBar = document.querySelector('.result-actions');
     if (actionsBar) {
-      // 按可见按钮数动态设置列数，避免末位按钮独占一行
+      // 列数按可见按钮数自适应：≤3 个单行；4 个排 2×2（避免单行过窄截断文案，也避免末位独占一行）
       const visibleBtns = Array.from(actionsBar.querySelectorAll('.action-btn'))
         .filter((b) => !b.classList.contains('hidden'));
-      actionsBar.style.gridTemplateColumns = `repeat(${Math.max(visibleBtns.length, 1)}, 1fr)`;
+      const columns = visibleBtns.length >= 4 ? 2 : Math.max(visibleBtns.length, 1);
+      actionsBar.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
     }
 
     spawnConfetti();
@@ -1867,9 +1873,8 @@ import { t, setLang } from './js/i18n.js';
   function detectLang() {
     const raw = (chrome.i18n && chrome.i18n.getUILanguage ? chrome.i18n.getUILanguage() : navigator.language) || 'en';
     const code = raw.toLowerCase();
-    if (code.startsWith('zh')) return 'zh';
-    if (code.startsWith('es')) return 'es';
-    return 'en';
+    const matched = SUPPORTED_LANGS.find((item) => code.startsWith(item));
+    return matched || 'en';
   }
 
   function loadSettings(done) {

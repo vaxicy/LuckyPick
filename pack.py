@@ -17,8 +17,7 @@ EXCLUDE_FILES = {'.gitignore', 'create-icons.html', 'pack.py'}
 EXCLUDE_EXT = {'.zip', '.tmp', '.bak'}
 
 REQUIRED = ['popup.html', 'popup.js', 'popup.css', 'background.js', 'donate.html',
-            '_locales/zh_CN/messages.json', '_locales/en/messages.json',
-            '_locales/es/messages.json', 'js/i18n.js', 'assets/赞赏码.png']
+            'js/i18n.js', 'assets/赞赏码.png']
 
 JS_TARGETS = ['popup.js', 'background.js', 'js/i18n.js']
 
@@ -57,7 +56,7 @@ def check_i18n_keys():
 import { I18N } from '%s';
 const base = Object.keys(I18N.zh);
 let bad = false;
-for (const lang of ['en', 'es']) {
+for (const lang of Object.keys(I18N).filter((l) => l !== 'zh')) {
   const miss = base.filter((k) => !(k in I18N[lang]));
   const extra = Object.keys(I18N[lang]).filter((k) => !(k in I18N.zh));
   if (miss.length || extra.length) {
@@ -115,12 +114,18 @@ def main():
                 archive.write(full, rel)
                 count += 1
 
+    # _locales 下每个语言目录都必须带上 messages.json
+    locales_dir = os.path.join(BASE, '_locales')
+    locale_required = ['_locales/%s/messages.json' % name
+                       for name in sorted(os.listdir(locales_dir))
+                       if os.path.isdir(os.path.join(locales_dir, name))]
+
     with zipfile.ZipFile(out) as archive:
         bad = archive.testzip()
         assert bad is None, 'corrupt entry: %s' % bad
         names = archive.namelist()
         assert 'manifest.json' in names, 'manifest.json missing at root'
-        for required in REQUIRED:
+        for required in REQUIRED + locale_required:
             assert required in names, 'missing: %s' % required
         assert all(not n.lower().endswith('.zip') for n in names), 'nested zip!'
         assert all(not n.startswith('tools/') for n in names), 'dev scripts leaked into package!'

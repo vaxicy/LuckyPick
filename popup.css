@@ -1267,6 +1267,11 @@ button {
 .result-actions .action-btn {
   font-size: 12px;
   min-height: 32px;
+  /* 长语言（西语/法语）文案不换行、不撑破按钮，超出省略 */
+  padding: 0 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 

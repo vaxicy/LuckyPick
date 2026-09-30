@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Store screenshot texts for zh / en / es."""
+"""Store screenshot texts for zh / en / es / fr."""
 
 CAPTURES = [
     {
@@ -23,6 +23,12 @@ CAPTURES = [
             "feature": "Entrada simple",
             "detail": "Interfaz real con entradas redondeadas y botón degradado.",
         },
+        "fr": {
+            "title": "Votre assistant pour décider",
+            "desc": "La fenêtre s'ouvre prête à l'emploi. Saisissez vos options et décidez aussitôt.",
+            "feature": "Saisie simple",
+            "detail": "Interface réelle, champs arrondis et bouton dégradé.",
+        },
     },
     {
         "stored": "capture-dice.png",
@@ -44,6 +50,12 @@ CAPTURES = [
             "desc": "Animación divertida para cada decisión.",
             "feature": "Decisión con dados",
             "detail": "Lanza dados con varias opciones. Resultados claros.",
+        },
+        "fr": {
+            "title": "Animation de dé en 3D",
+            "desc": "Une animation amusante qui donne du rituel à chaque décision.",
+            "feature": "Décision au dé",
+            "detail": "Plusieurs options lancées ensemble, résultat limpide.",
         },
     },
     {
@@ -67,6 +79,12 @@ CAPTURES = [
             "feature": "Modo moneda",
             "detail": "Animación realista de moneda de la extensión.",
         },
+        "fr": {
+            "title": "Pile ou face en un lancer",
+            "desc": "Parfait pour les choix binaires : pile ou face tranche pour vous.",
+            "feature": "Mode pièce",
+            "detail": "Animation de pièce réaliste, tirée de l'extension.",
+        },
     },
     {
         "stored": "capture-wheel.png",
@@ -89,6 +107,12 @@ CAPTURES = [
             "feature": "Modo ruleta",
             "detail": "Ruleta real de la extensión en funcionamiento.",
         },
+        "fr": {
+            "title": "Roulette, résultat limpide",
+            "desc": "Plus ludique avec plusieurs options, les couleurs suivent le résultat.",
+            "feature": "Mode roulette",
+            "detail": "La roulette tourne vraiment, dans l'extension réelle.",
+        },
     },
     {
         "stored": "capture-rps-battle.png",
@@ -110,6 +134,12 @@ CAPTURES = [
             "desc": "El bot juega A, tú juegas B: el ganador elige.",
             "feature": "Duelo contra el bot",
             "detail": "Animación de choque y desempate automático.",
+        },
+        "fr": {
+            "title": "Duel pierre-feuille-ciseaux",
+            "desc": "Le bot joue A, vous jouez B : le camp gagnant est choisi.",
+            "feature": "Mode PFC",
+            "detail": "Animation de duel et revanche auto en cas d'égalité.",
         },
     },
 ]

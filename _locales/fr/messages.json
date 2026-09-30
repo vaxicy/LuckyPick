@@ -1,0 +1,10 @@
+{
+  "extension_name": {
+    "message": "Lucky Pick - Votre assistant pour décider",
+    "description": "Extension name"
+  },
+  "extension_description": {
+    "message": "Vous n’arrivez pas à choisir ? Laissez Lucky Pick décider au hasard. Dé, pièce, roulette, tirage et pierre-feuille-ciseaux.",
+    "description": "Extension description"
+  }
+}

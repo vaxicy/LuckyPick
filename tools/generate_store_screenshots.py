@@ -16,7 +16,7 @@ ASSETS = ROOT / "store-assets"
 SRC_BASE = ASSETS / "source-captures"
 
 W, H = 1280, 800
-LANGS = tuple(sys.argv[1].split(",")) if len(sys.argv) > 1 else ("zh", "en", "es")
+LANGS = tuple(sys.argv[1].split(",")) if len(sys.argv) > 1 else ("zh", "en", "es", "fr")
 
 TEXT = "#4a3860"
 SUB = "#8e7aaa"
